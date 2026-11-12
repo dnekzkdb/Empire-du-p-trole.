@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Magnat du Pétrole : Extrait, Raffine & Conquis</title>
+    <style>
+        * { box-sizing: border-box; }
+        
+        html, body { 
+            margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; 
+            color: #f8fafc; display: flex; flex-direction: column; 
+            height: 100vh; height: 100dvh; width: 100vw; overflow: hidden;
+            user-select: none; -webkit-tap-highlight-color: transparent; background-color: #090d16;
+            overscroll-behavior: none; overscroll-behavior-y: none; position: fixed; inset: 0;
+        }
+
+        body {
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            padding-left: env(safe-area-inset-left, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
+        }
+
+        /* --- ARRIÈRE-PLAN & ÉCOSYS-PETROLE --- */
+        .dune-bg { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom, #1e293b 0%, #0f172a 35%, #050b14 75%); z-index: -10; overflow: hidden; transition: filter 0.3s, background 0.5s; }
+        .dune-bg.theme-paris { background: linear-gradient(to bottom, #d97706 0%, #78350f 35%, #090d16 75%); } 
+        .dune-bg.theme-lyon { background: linear-gradient(to bottom, #b45309 0%, #451a03 35%, #020617 75%); } 
+        .dune-bg.theme-marseille { background: linear-gradient(to bottom, #0284c7 0%, #1e3a8a 35%, #020617 75%); } 
+        .dune-bg.theme-orleans { background: linear-gradient(to bottom, #059669 0%, #064e3b 35%, #020617 75%); } 
+        .dune-bg.theme-bordeaux { background: linear-gradient(to bottom, #334155 0%, #1e293b 35%, #000000 75%); }
+        .dune-bg.theme-toulouse { background: linear-gradient(to bottom, #7c3aed 0%, #4c1d95 35%, #020617 75%); }
+
+        .frenzy-overlay { position: fixed; inset: 0; background: radial-gradient(circle, transparent 20%, rgba(245, 158, 11, 0.4) 100%); z-index: -5; opacity: 0; transition: opacity 0.3s; pointer-events: none; mix-blend-mode: multiply; }
+        body.frenzy-active .dune-bg { filter: grayscale(30%) contrast(1.3); }
+        body.frenzy-active .frenzy-overlay { opacity: 1; }
+
+        .horizon-line { position: absolute; top: 38%; left: 0; right: 0; height: 2px; background: rgba(245, 158, 11, 0.3); }
+        .cloud { position: absolute; background: rgba(255, 255, 255, 0.15); border-radius: 50px; animation: drift linear infinite; }
+        @keyframes drift { from { transform: translateX(110vw); } to { transform: translateX(-200px); } }
+        .cloud-1 { width: 140px; height: 35px; top: 12%; animation-duration: 45s; }
+        .cloud-2 { width: 90px; height: 25px; top: 22%; animation-duration: 35s; opacity: 0.7; animation-delay: -10s; }
+        .cloud-3 { width: 180px; height: 45px; top: 8%; animation-duration: 60s; opacity: 0.5; animation-delay: -30s; }
+
+        /* --- BARRE SUPÉRIEURE --- */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px); border-bottom: 2px solid rgba(51, 65, 85, 0.5); flex-shrink: 0; z-index: 30; position: relative; height: 50px; }
+        .hamburger-btn { background: #334155; color: white; border: none; padding: 6px 10px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .hamburger-btn:active { transform: scale(0.95); }
+        .renaissance-badge { background: #d97706; color: white; padding: 4px 8px; border-radius: 20px; font-weight: bold; font-size: 11px; }
+
+        /* --- MENU DÉROULANT --- */
+        .menu-dropdown { display: none; position: absolute; top: 48px; left: 15px; background: #1e293b; border: 1px solid #475569; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); width: 220px; z-index: 100; text-align: left; }
+        .menu-dropdown button { width: 100%; background: none; border: none; color: white; padding: 10px; text-align: left; font-size: 12px; font-weight: bold; cursor: pointer; border-bottom: 1px solid #334155; }
+        .menu-dropdown button:hover { background: #334155; }
+        .menu-section { padding: 10px; border-bottom: 1px solid #334155; color: white; font-size: 12px; font-weight: bold; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin-top: 8px; }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%; background: #f59e0b; cursor: pointer; margin-top: -6px; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: #475569; border-radius: 2px; }
+
+        /* --- CONTENEUR DE SWIPE --- */
+        .swipe-container { display: flex; width: 400%; flex: 1; min-height: 0; transition: transform 0.3s ease-in-out; overscroll-behavior: none; }
+        .screen-panel { width: 25%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 15px 15px 90px 15px; text-align: center; overflow-y: auto; overflow-x: hidden; background: rgba(9, 13, 22, 0.45); overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
+
+        .screen-title { font-size: 16px; font-weight: bold; margin-bottom: 8px; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.6); transition: color 0.3s; }
+        .huge-score { font-size: 32px; font-weight: bold; margin: 4px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .sub-info { font-size: 13px; color: #cbd5e1; margin-bottom: 10px; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+
+        .big-click-btn { width: 110px; height: 110px; border-radius: 50%; background: radial-gradient(circle, #f59e0b, #78350f); color: white; font-size: 45px; border: 4px solid #b45309; margin: 5px auto 15px auto; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6); transition: all 0.2s; flex-shrink: 0; }
+        .metal-click-btn { background: radial-gradient(circle, #475569, #1e293b) !important; border-color: #64748b !important; }
+        .laiton-click-btn { background: radial-gradient(circle, #78350f, #451a03) !important; border-color: #b45309 !important; }
+        .chrome-click-btn { background: radial-gradient(circle, #0284c7, #075985) !important; border-color: #38bdf8 !important; }
+        .titane-click-btn { background: radial-gradient(circle, #059669, #064e3b) !important; border-color: #34d399 !important; }
+        .bordeaux-click-btn { background: radial-gradient(circle, #475569, #0f172a) !important; border-color: #94a3b8 !important; }
+        .toulouse-click-btn { background: radial-gradient(circle, #7c3aed, #4c1d95) !important; border-color: #a78bfa !important; }
+        .big-click-btn:active { transform: scale(0.92); }
+        body.frenzy-active .big-click-btn { box-shadow: 0 0 30px #f59e0b; border-color: #fbbf24; animation: pulseBtn 0.3s infinite alternate; }
+        @keyframes pulseBtn { 0% { transform: scale(1); } 100% { transform: scale(1.05); } }
+
+        /* Contrôles du prix */
+        .price-box { background: rgba(30, 41, 59, 0.85); padding: 15px; border-radius: 12px; width: 100%; max-width: 300px; border: 1px solid rgba(51, 65, 85, 0.8); margin-bottom: 15px; backdrop-filter: blur(4px); }
+        .price-control { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 10px 0; }
+        .price-btn { background: #334155; color: white; border: none; width: 32px; height: 32px; border-radius: 50%; font-weight: bold; font-size: 16px; cursor: pointer; }
+        .price-display { font-size: 16px; font-weight: bold; color: #fcd34d; }
+
+        /* --- CONTRATS & QUÊTES --- */
+        .contract-box { width: 100%; max-width: 320px; text-align: left; margin-bottom: 20px; }
+        .contract-card { background: rgba(30, 41, 59, 0.85); border: 1px solid #475569; border-radius: 8px; padding: 10px; margin-bottom: 8px; backdrop-filter: blur(4px); display: flex; flex-direction: column; gap: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border-left: 4px solid #fcd34d; }
+        .contract-header { display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; color: #f8fafc; }
+        .contract-details { font-size: 11px; color: #cbd5e1; display: flex; justify-content: space-between; align-items: center; }
+        .contract-btn { background: #fcd34d; color: #1e293b; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 11px; cursor: pointer; }
+        .contract-btn.deliver { background: #10b981; color: white; }
+        .contract-btn.cancel { background: #ef4444; color: white; }
+        .contract-btn:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+        .progress-bar-bg { width: 100%; height: 8px; background: #334155; border-radius: 4px; overflow: hidden; margin-top: 4px; }
+        .progress-bar-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.2s; }
+
+        /* --- JAUGE ZONE ROUGE --- */
+        .frenzy-container { position: fixed; bottom: calc(55px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); width: 80%; max-width: 320px; height: 10px; background: rgba(15, 23, 42, 0.85); border: 1px solid #475569; border-radius: 6px; overflow: hidden; z-index: 20; box-shadow: 0 4px 6px rgba(0,0,0,0.5); pointer-events: none; transition: bottom 0.2s; }
+        .frenzy-bar { height: 100%; width: 0%; background: linear-gradient(90deg, #d97706, #f59e0b); transition: width 0.1s linear; }
+        .frenzy-text { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: bold; color: #f8fafc; opacity: 0.5; transition: opacity 0.3s, color 0.3s; letter-spacing: 2px; text-transform: uppercase; white-space: nowrap; }
+        body.frenzy-active .frenzy-bar { background: #f59e0b; box-shadow: 0 0 15px #f59e0b; }
+        body.frenzy-active .frenzy-text { opacity: 1; color: #f59e0b; text-shadow: 0 0 5px rgba(245, 158, 11, 0.8); animation: pulseText 0.3s infinite alternate; }
+        @keyframes pulseText { 0% { transform: translateX(-50%) scale(1); } 100% { transform: translateX(-50%) scale(1.1); } }
+
+        /* --- NAVIGATION INFÉRIEURE --- */
+        .nav-footer { position: fixed; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); left: 0; right: 0; display: flex; align-items: center; justify-content: center; gap: 15px; z-index: 25; pointer-events: auto; transition: bottom 0.2s; }
+        .nav-arrow { background: rgba(30, 41, 59, 0.9); color: #f59e0b; border: 1px solid #475569; width: 36px; height: 36px; border-radius: 50%; font-weight: bold; font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.6); transition: background 0.1s; backdrop-filter: blur(4px); }
+        .nav-arrow:active { background: #334155; transform: scale(0.9); }
+        .swipe-dots { display: flex; justify-content: center; gap: 6px; align-items: center; }
+        .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.3); transition: background 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+        .dot.active { background: #f59e0b; width: 18px; border-radius: 4px; }
+
+        /* AJUSTEMENTS PLEIN ÉCRAN DYNAMIQUES */
+        body.is-fullscreen .frenzy-container { bottom: 50px; }
+        body.is-fullscreen .nav-footer { bottom: 10px; }
+
+        /* --- STYLES DES BOUTIQUES --- */
+        .shop-container, .quick-upgrade-box { width: 100%; max-width: 350px; text-align: left; padding-bottom: 60px; }
+        .shop-category-title { font-size: 12px; font-weight: bold; margin: 12px 0 6px 4px; text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .shop-item { background: rgba(30, 41, 59, 0.85); padding: 10px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-left: 4px solid #f59e0b; position: relative; overflow: hidden; backdrop-filter: blur(4px); box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .metal-shop-item { border-left-color: #64748b; }
+        .dollar-shop-item { border-left-color: #10b981; }
+        .tech-shop-item { border-left-color: #a78bfa; background: rgba(46, 16, 101, 0.85); }
+        .manager-shop-item { border-left-color: #ec4899; }
+        .laiton-shop-item { border-left-color: #b45309; }
+        .chrome-shop-item { border-left-color: #0284c7; }
+        .titane-shop-item { border-left-color: #059669; }
+        .bordeaux-shop-item { border-left-color: #94a3b8; }
+        .toulouse-shop-item { border-left-color: #7c3aed; }
+        .shop-costs { font-size: 11px; color: #cbd5e1; margin-top: 2px; }
+        .buy-btn { background: #10b981; color: white; border: none; padding: 8px 10px; border-radius: 5px; font-weight: bold; min-width: 75px; font-size: 11px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.4); transition: background 0.2s; }
+        .buy-btn:disabled { background: #334155 !important; color: #64748b; cursor: not-allowed; box-shadow: none; }
+
+        /* MODALES */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(9, 13, 22, 0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; text-align: center; padding: 20px; overscroll-behavior: contain; }
+        .modal-overlay h2 { margin-bottom: 10px; }
+        .modal-close-btn { background: #10b981; color: white; border: none; padding: 12px 25px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 20px; }
+        .ach-item { background: #1e293b; border-left: 4px solid #475569; padding: 10px; margin-bottom: 8px; border-radius: 6px; text-align: left; width: 100%; max-width: 300px; opacity: 0.5; }
+        .ach-item.unlocked { border-left-color: #fcd34d; opacity: 1; background: #332701; }
+        .ach-title { font-weight: bold; font-size: 13px; color: #f8fafc; }
+        .ach-desc { font-size: 11px; color: #94a3b8; }
+        
+        /* CARTE DES SITES PÉTROLIERS */
+        .france-map { position: relative; width: 280px; height: 280px; background: rgba(30, 41, 59, 0.7); border: 2px solid #475569; border-radius: 15px; margin: 15px auto; box-shadow: inset 0 0 20px rgba(0,0,0,0.6); overflow: hidden; }
+        .map-city { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s; }
+        .map-city:active { transform: translate(-50%, -50%) scale(0.9); }
+        .map-pin { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; box-shadow: 0 3px 8px rgba(0,0,0,0.5); border: 2px solid white; }
+        .map-pin.unlocked { background: #f59e0b; }
+        .map-pin.locked { background: #475569; opacity: 0.8; }
+        .map-label { font-size: 10px; font-weight: bold; color: #f8fafc; margin-top: 3px; background: rgba(15, 23, 42, 0.8); padding: 1px 5px; border-radius: 4px; white-space: nowrap; text-shadow: 0 1px 2px #000; }
+
+        /* POP-UP ÉVÉNEMENT */
+        #event-popup { position: fixed; top: 70px; right: 20px; background: linear-gradient(135deg, #1e293b, #0f172a); border: 2px solid #f59e0b; border-radius: 12px; padding: 12px; z-index: 800; width: 220px; text-align: left; box-shadow: 0 10px 25px rgba(0,0,0,0.7); display: none; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: pointer; }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* MODE DEV */
+        .dev-input { width: 100%; padding: 8px 10px; margin: 4px 0 10px 0; background: #1e293b; border: 1px solid #475569; color: white; border-radius: 6px; font-size: 13px; font-family: monospace; }
+
+        /* EFFETS VISUELS */
+        .floating-text { position: absolute; font-size: 18px; font-weight: bold; pointer-events: none; animation: floatUp 0.6s ease-out forwards; z-index: 100; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-50px); } }
+        .floating-text.crit { font-size: 26px !important; color: #fcd34d !important; text-shadow: 0 0 10px #f59e0b, 0 2px 4px #000; z-index: 200; animation: critPop 0.8s ease-out forwards; }
+        @keyframes critPop { 0% { opacity: 1; transform: scale(1) translateY(0); } 20% { transform: scale(1.3) translateY(-15px); } 100% { opacity: 0; transform: scale(1) translateY(-60px); } }
+        .particle { position: absolute; font-size: 20px; pointer-events: none; z-index: 90; animation: popFall 0.8s ease-in forwards; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5)); }
+        @keyframes popFall { 0% { opacity: 1; transform: translate(0, 0) scale(1) rotate(0deg); } 100% { opacity: 0; transform: translate(var(--vx), var(--vy)) scale(0.4) rotate(180deg); } }
+        #toast-container { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); z-index: 999; pointer-events: none; display: flex; flex-direction: column; gap: 8px; }
+        .toast { background: rgba(30, 41, 59, 0.95); border: 1px solid #f59e0b; color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 13px; box-shadow: 0 4px 12px rgba(0,0,0,0.5); animation: toastIn 0.3s, toastOut 0.3s 2.7s forwards; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <!-- LECTEUR AUDIO -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="https://stream.zeno.fm/f3wvbbqmdg8uv" type="audio/mp3">
+    </audio>
+
+    <div class="dune-bg">
+        <div class="horizon-line"></div>
+        <div class="cloud cloud-1"></div><div class="cloud cloud-2"></div><div class="cloud cloud-3"></div>
+    </div>
+    
+    <div class="frenzy-overlay"></div>
+    <div id="toast-container"></div>
+
+    <!-- MINI ÉVÉNEMENT POP-UP -->
+    <div id="event-popup" onclick="resolveEventClick()">
+        <div id="event-title" style="font-weight: bold; font-size: 13px; color: #f59e0b; margin-bottom: 4px;">🎯 Découverte !</div>
+        <div id="event-desc" style="font-size: 11px; color: #cbd5e1; margin-bottom: 8px;">Pompe le filon vite !</div>
+        <div style="width: 100%; height: 4px; background: #334155; border-radius: 2px; overflow: hidden;">
+            <div id="event-timer-bar" style="width: 100%; height: 100%; background: #f59e0b; transition: width 0.1s linear;"></div>
+        </div>
+    </div>
+
+    <!-- MODALE AFK -->
+    <div id="afk-modal" class="modal-overlay">
+        <h2 style="color:#f59e0b;">🛢️ Bilan d'absence</h2>
+        <div id="afk-text"></div>
+        <button class="modal-close-btn" onclick="closeAfkModal()">Encaisse le brut !</button>
+    </div>
+
+    <!-- MODALE STATISTIQUES -->
+    <div id="stats-modal" class="modal-overlay">
+        <h2 style="color:#f59e0b;">📊 Statistiques du Cartel</h2>
+        <div id="stats-content" style="overflow-y:auto; max-height:60vh; width:100%; max-width:320px; text-align:left; background:rgba(30, 41, 59, 0.95); padding:15px; border-radius:10px; border:1px solid #475569;"></div>
+        <button class="modal-close-btn" onclick="closeStatsModal()">Fermer</button>
+    </div>
+
+    <!-- MODALE R&D PETROLE -->
+    <div id="lab-modal" class="modal-overlay">
+        <h2 style="color:#a78bfa;">🧪 Centre de Géologie & R&D</h2>
+        <p style="color:#cbd5e1; font-size:12px; margin-bottom:15px;">Brevets & Ampoules R&D : <b style="color:#fcd34d;" id="modalBulbsDisplay">0 💡</b></p>
+        <div id="research-tree" style="overflow-y:auto; max-height:55vh; width:100%; max-width:320px; display:flex; flex-direction:column; gap:10px;"></div>
+        <button class="modal-close-btn" onclick="closeLabModal()">Fermer</button>
+    </div>
+
+    <!-- MODALE CARTE DES SITES PÉTROLIERS -->
+    <div id="map-modal" class="modal-overlay">
+        <h2 style="color:#f59e0b;">🗺️ Cartel Global & Raffineries</h2>
+        <p style="color:#cbd5e1; font-size:12px; margin-bottom:5px;">Débloque des complexes de Bitume, Kérosène, Pétrochimie et Plateformes Deepsea.</p>
+        
+        <div class="france-map" id="franceMapContainer"></div>
+
+        <div id="factoryInfoBox" style="background: rgba(30, 41, 59, 0.9); border: 1px solid #475569; padding: 12px; border-radius: 8px; width: 100%; max-width: 280px; text-align: center;">
+            <div id="factoryTitle" style="font-weight: bold; font-size: 14px; color: #fcd34d;">Sélectionne un gisement/site</div>
+            <div id="factoryDesc" style="font-size: 11px; color: #94a3b8; margin: 4px 0;">Clique sur un point de la carte.</div>
+            <div id="factoryCost" style="font-size: 12px; font-weight: bold; color: #34d399; margin-bottom: 8px;"></div>
+            <button id="factoryActionBtn" class="buy-btn" style="width: 100%; display: none;"></button>
+        </div>
+
+        <button class="modal-close-btn" style="margin-top: 15px;" onclick="closeMapModal()">Fermer</button>
+    </div>
+
+    <!-- MODALE TROPHÉES -->
+    <div id="ach-modal" class="modal-overlay">
+        <h2 style="color:#fcd34d;">🏆 Succès de Baron Pétrolier</h2>
+        <p style="color:#cbd5e1; font-size:13px; margin-bottom:15px;">Chaque trophée donne <b style="color:#10b981;">+5%</b> de production globale.</p>
+        <p style="color:#fcd34d; font-weight:bold; margin-bottom:15px;">Bonus Actuel : <span id="achBonusDisplay">+0%</span></p>
+        <div id="ach-list" style="overflow-y:auto; max-height:60vh; width:100%; display:flex; flex-direction:column; align-items:center;"></div>
+        <button class="modal-close-btn" onclick="closeAchievements()">Fermer</button>
+    </div>
+
+    <!-- MODALE DEV -->
+    <div id="dev-modal" class="modal-overlay" style="padding-bottom: 70px;">
+        <div style="background: rgba(30, 41, 59, 0.98); border: 2px solid #ef4444; border-radius: 12px; padding: 15px; width: 90%; max-width: 320px; max-height: 80vh; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8); overflow-y: auto;">
+            <h2 style="color:#ef4444; margin-top:0; margin-bottom:10px; font-size: 18px;">⚙️ Mode Ingénieur (Dev)</h2>
+            
+            <div style="display:flex; gap:6px; margin-bottom:12px; width:100%;">
+                <button id="devTab1" onclick="switchDevPage(1)" style="flex:1; padding:6px 2px; font-size:10px; font-weight:bold; background:#ef4444; color:white; border:none; border-radius:6px; cursor:pointer;">Base</button>
+                <button id="devTab2" onclick="switchDevPage(2)" style="flex:1; padding:6px 2px; font-size:10px; font-weight:bold; background:#334155; color:white; border:none; border-radius:6px; cursor:pointer;">Dérivés</button>
+                <button id="devTab3" onclick="switchDevPage(3)" style="flex:1; padding:6px 2px; font-size:10px; font-weight:bold; background:#334155; color:white; border:none; border-radius:6px; cursor:pointer;">Empire</button>
+            </div>
+
+            <div id="devPage1" style="text-align: left; width: 100%;">
+                <label style="color: #f59e0b; font-size: 12px; font-weight: bold;">🛢️ Barils de Brut :</label><input type="number" id="devTrombones" class="dev-input">
+                <label style="color: #64748b; font-size: 12px; font-weight: bold;">🪨 Pression/Terre :</label><input type="number" id="devMetal" class="dev-input">
+                <label style="color: #34d399; font-size: 12px; font-weight: bold;">💵 Dollars :</label><input type="number" id="devDollars" class="dev-input">
+            </div>
+
+            <div id="devPage2" style="text-align: left; width: 100%; display: none;">
+                <label style="color: #b45309; font-size: 12px; font-weight: bold;">⬛ Bitume (Lyon) :</label><input type="number" id="devLaiton" class="dev-input">
+                <label style="color: #0284c7; font-size: 12px; font-weight: bold;">⛽ Kérosène (Marseille) :</label><input type="number" id="devChrome" class="dev-input">
+                <label style="color: #059669; font-size: 12px; font-weight: bold;">🧪 Pétrochimie (Orléans) :</label><input type="number" id="devTitane" class="dev-input">
+            </div>
+
+            <div id="devPage3" style="text-align: left; width: 100%; display: none;">
+                <label style="color: #94a3b8; font-size: 12px; font-weight: bold;">🚢 Tankers (Bordeaux) :</label><input type="number" id="devBordeaux" class="dev-input">
+                <label style="color: #7c3aed; font-size: 12px; font-weight: bold;">🏗️ Deepsea (Toulouse) :</label><input type="number" id="devToulouse" class="dev-input">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 15px; width: 100%;">
+                <button class="modal-close-btn" style="background:#475569; flex:1; margin-top:0; padding:10px; font-size:13px;" onclick="closeDevModal()">Annuler</button>
+                <button class="modal-close-btn" style="background:#ef4444; flex:1; margin-top:0; padding:10px; font-size:13px;" onclick="applyDevMode()">Injecter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BARRE SUPÉRIEURE -->
+    <div class="top-bar">
+        <div style="display:flex; gap:6px; align-items:center;">
+            <button class="hamburger-btn" onclick="toggleMenu()">☰ Menu</button>
+            <button class="hamburger-btn" id="btnBuyMode" style="background:#d97706;" onclick="toggleBuyMode()">x1</button>
+            <button class="hamburger-btn" style="background:#0284c7;" onclick="toggleFullScreen()">📱 Plein Écran</button>
+            <div style="width: 25px; height: 25px; background: transparent; cursor: default;" onclick="handleDevClick()"></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+            <button onclick="openMapModal()" style="background:#1e293b; border:1px solid #475569; color:#f59e0b; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:bold; cursor:pointer;">🗺️ Sites</button>
+            <button onclick="openLabModal()" style="background:#1e293b; border:1px solid #475569; color:#a78bfa; border-radius:6px; padding:4px 8px; font-size:11px; font-weight:bold; cursor:pointer;">💡 <span id="bulbHeaderCount">0</span></button>
+            <button onclick="openAchievements()" style="background:none; border:none; font-size:18px; cursor:pointer; padding:0;">🏆</button>
+            <div class="renaissance-badge" id="renaissanceBadge">0</div>
+        </div>
+        
+        <div class="menu-dropdown" id="menuDropdown">
+            <button onclick="toggleFullScreen(); toggleMenu();" style="color: #38bdf8;">📱 Mode Plein Écran</button>
+            <button onclick="openStatsModal(); toggleMenu();" style="color: #f59e0b;">📊 Statistiques</button>
+            <button onclick="forcePlayMusic()" style="color: #cbd5e1;">🎧 Musique Industrielle</button>
+            <div class="menu-section">🎵 Vol: <span id="volDisplay">20%</span><input type="range" id="volumeSlider" min="0" max="100" value="20" oninput="updateVolume(this.value)"></div>
+            <div class="menu-section" style="color: #a78bfa;">Bonus Brevets: x<span id="rdBonus">1.0</span></div>
+            <button id="saveBtn" onclick="manualSave()">💾 Sauvegarder</button>
+            <button onclick="recycleTrombones()" style="color: #d97706;">♻️ Craquage (1k 🛢️ → 200 🪨)</button>
+            <button id="btnRenaissance" onclick="openResearch(); toggleMenu();" style="color: #a78bfa;">✨ Cartel OPEP (Prestige)</button>
+            <button onclick="resetGame()" style="color: #f87171;">🗑️ Vendre le gisement (Reset)</button>
+        </div>
+    </div>
+
+    <!-- CONTENEUR SWIPE -->
+    <div class="swipe-container" id="swipeContainer" style="transform: translateX(-50%);">
+        
+        <!-- ÉCRAN 0 : MARCHE DU MATÉRIEL & ÉQUIPEMENTS -->
+        <div class="screen-panel">
+            <div class="screen-title" style="color: #fcd34d;">🛒 Fournisseurs Pétroliers</div>
+            
+            <div class="shop-container" id="parisShopElements">
+                <div class="shop-category-title" style="color: #ec4899;">👔 Cadres & Ingénieurs</div>
+                <div id="managerShop"></div>
+                
+                <div class="shop-category-title" style="color: #a78bfa; margin-top:15px;">🧪 R&D & Géophysique</div>
+                <div style="margin-bottom: 10px;">
+                    <button class="buy-btn" style="background: #a78bfa; width: 100%; padding: 10px; font-size: 13px; box-shadow: 0 4px 6px rgba(0,0,0,0.4);" onclick="openLabModal()">🔬 Ouvrir l'Arbre des Brevets</button>
+                </div>
+                
+                <div class="shop-category-title" style="color:#f59e0b; margin-top:15px;">🏭 Derricks & Pompes</div>
+                <div id="shop"></div>
+                
+                <div class="shop-category-title" style="color: #64748b; margin-top: 15px;">🪨 Sondages & Pression</div>
+                <div id="metalShop"></div>
+                
+                <div class="shop-category-title" style="color: #34d399; margin-top: 15px;">💵 Contrats Financiers ($)</div>
+                <div id="dollarShop"></div>
+            </div>
+
+            <div class="shop-container" id="orleansShopElements" style="display: none; padding-top:10px;">
+                <div style="background: rgba(30, 41, 59, 0.9); border:1px solid #475569; padding:12px; border-radius:10px; margin-bottom:15px; text-align:center;">
+                    <div style="font-weight:bold; color:#cbd5e1; font-size:13px; margin-bottom:4px;" id="otherFactoryShopTitle">Complexe Spécialisé Actif</div>
+                    <p style="font-size:11px; color:#cbd5e1; margin:4px 0 10px 0;">Pour gérer les Derricks de base, les Cadres et la R&D générale, retournez au <b>Champ de Forage Principal (Texas/QG)</b>.</p>
+                    <button class="buy-btn" style="background:#f59e0b; width:100%; padding:8px; font-size:11px;" onclick="visitFactory('paris')">✈️ Retour au QG Principal</button>
+                </div>
+
+                <div class="shop-category-title" id="dedicatedShopTitle" style="color: #fcd34d; text-align:left;">🏭 Installations du Site</div>
+                <div id="dedicatedFactoryShopList"></div>
+            </div>
+        </div>
+
+        <!-- ÉCRAN 1 : BOURSE DU BARIL & CONTRATS -->
+        <div class="screen-panel">
+            <div class="screen-title" style="color: #34d399;">Bourse de l'Or Noir</div>
+            <div class="huge-score" id="dollarScore" style="color: #34d399;">0 $</div>
+
+            <div class="price-box">
+                <div style="font-size: 12px; color: #cbd5e1; margin-bottom: 5px;">Fixer le cours du baril</div>
+                <div class="price-control">
+                    <button class="price-btn" onclick="changePrice(-1.00)">-</button>
+                    <div><span class="price-display" id="clipPriceDisplay">45.00 $</span></div>
+                    <button class="price-btn" onclick="changePrice(1.00)">+</button>
+                </div>
+                <div style="font-size: 11px; color: #f59e0b; margin-top: 6px;">Demande des centrales/raffineries : <span id="clientDemand" style="font-weight: bold;">100%</span></div>
+            </div>
+
+            <div class="contract-box">
+                <div class="shop-category-title" style="color: #fcd34d;">⚡ Appel d'Offre Flash</div>
+                <div id="questUI" class="contract-card" style="border-left-color: #f59e0b;"></div>
+            </div>
+
+            <div class="contract-box">
+                <div class="shop-category-title" id="contractMainTitle" style="color: #fcd34d;">📋 Contrats d'Exportation</div>
+                <div id="contractsUI"></div>
+            </div>
+            
+            <div class="shop-category-title" style="color: #34d399; align-self: flex-start; margin-left: 10px;">💵 Placements d'Or Noir</div>
+            <div class="quick-upgrade-box" id="quickShopDollar"></div>
+        </div>
+
+        <!-- ÉCRAN 2 : LE DERRICK / CHAMP PÉTROLIER (DYNAMIQUE) -->
+        <div class="screen-panel">
+            <div class="screen-title" id="factoryName" style="color: #f59e0b;">Puits de Forage Principal</div>
+            <div class="huge-score" id="factoryScore">0</div>
+            <div class="sub-info" id="factorySubInfo">+<span id="factoryGps">0</span> barils / sec</div>
+
+            <button class="big-click-btn" id="factoryClickBtn">🛢️</button>
+            <div class="shop-category-title" id="factoryQuickShopTitle" style="color: #fcd34d; align-self: flex-start; margin-left: 10px;">🏗️ Installations en service :</div>
+            <div class="quick-upgrade-box" id="quickShopFactory"></div>
+        </div>
+
+        <!-- ÉCRAN 3 : PROSPECTION & PRESSION DU GISEMENT -->
+        <div class="screen-panel">
+            <div class="screen-title" style="color: #64748b;">Prospection & Pression Subterrestre</div>
+            <div class="huge-score" id="metalScore" style="color: #94a3b8;">100</div>
+            <div class="sub-info">+<span id="metalGps">0</span> bar / sec</div>
+            <button class="big-click-btn metal-click-btn" id="clickMetalBtn">🪨</button>
+            <div class="shop-category-title" style="color: #94a3b8; align-self: flex-start; margin-left: 10px;">⛏️ Sondages & Carottage :</div>
+            <div class="quick-upgrade-box" id="quickShopMetal"></div>
+        </div>
+
+    </div>
+
+    <!-- JAUGE ZONE ROUGE (GUSH / ERUPTION) -->
+    <div class="frenzy-container">
+        <div class="frenzy-text">Éruption du Gisement !</div>
+        <div class="frenzy-bar" id="frenzy-bar"></div>
+    </div>
+
+    <!-- NAVIGATION -->
+    <div class="nav-footer">
+        <button class="nav-arrow" onclick="changeScreen(-1)">◀</button>
+        <div class="swipe-dots">
+            <div class="dot" id="dot0"></div><div class="dot" id="dot1"></div><div class="dot active" id="dot2"></div><div class="dot" id="dot3"></div>
+        </div>
+        <button class="nav-arrow" onclick="changeScreen(1)">▶</button>
+    </div>
+
+    <script>
+        // --- DÉSACTIVATION DU PULL-TO-REFRESH & DECALAGES ---
+        document.addEventListener('touchmove', function(e) {
+            let target = e.target;
+            let isScrollable = false;
+            while (target && target !== document.body) {
+                let style = window.getComputedStyle(target);
+                let overflowY = style.getPropertyValue('overflow-y');
+                if ((overflowY === 'auto' || overflowY === 'scroll') && target.scrollHeight > target.clientHeight) {
+                    isScrollable = true;
+                    break;
+                }
+                target = target.parentNode;
+            }
+            if (!isScrollable) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // --- GESTION ADAPTATIVE ET DYNAMIQUE DU PLEIN ÉCRAN ---
+        function updateFullscreenState() {
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                document.body.classList.add('is-fullscreen');
+            } else {
+                document.body.classList.remove('is-fullscreen');
+            }
+        }
+        document.addEventListener('fullscreenchange', updateFullscreenState);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenState);
+
+        function toggleFullScreen() {
+            let doc = document.documentElement;
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                if (doc.requestFullscreen) doc.requestFullscreen().catch(() => {});
+                else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen().catch(() => {});
+            }
+        }
+
+        let hasRequestedFS = false;
+        window.addEventListener('pointerdown', () => {
+            if (!hasRequestedFS) {
+                hasRequestedFS = true;
+                if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                    let doc = document.documentElement;
+                    if (doc.requestFullscreen) doc.requestFullscreen().catch(() => {});
+                    else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen().catch(() => {});
+                }
+            }
+        }, { once: true });
+
+        // --- ETAT GLOBAL DU JEU ---
+        let state = {
+            trombones: 0, metal: 100, dollars: 0, laiton: 0, chrome: 0, titane: 0, bordeauxNaval: 0, toulouseAero: 0, clipPrice: 45.00, rdPoints: 0, rdMultiplier: 1.0, lastOnline: Date.now(),
+            totalTrombones: 0, totalMetal: 100, totalDollars: 0, totalLaiton: 0, totalChrome: 0, totalTitane: 0, totalBordeauxNaval: 0, totalToulouseAero: 0, frenzyCount: 0, manualClicks: 0,
+            counts: [0, 0, 0, 0, 0, 0, 0, 0], metalCounts: [0, 0, 0, 0, 0, 0, 0, 0], dollarCounts: [0, 0, 0],
+            laitonCounts: [0, 0, 0, 0], chromeCounts: [0, 0, 0, 0], titaneCounts: [0, 0, 0, 0], bordeauxCounts: [0, 0, 0, 0], toulouseCounts: [0, 0, 0, 0],
+            unlockedTechs: [], unlockedAchievements: [], volume: 20,
+            managerLevels: [0, 0, 0], contracts: [], activeContract: null,
+            factories: { paris: true, lyon: false, marseille: false, orleans: false, bordeaux: false, toulouse: false },
+            currentFactory: 'paris', researchBulbs: 0, activeQuest: null
+        };
+
+        let buyMode = 1; let eventBoost = 1; let ticks = 0; let achBonusMult = 1.0;
+        let tromboneProduction = 0, metalProduction = 1.5, laitonProduction = 0, chromeProduction = 0, titaneProduction = 0, bordeauxProduction = 0, toulouseProduction = 0;
+        let clickPower = 1, metalClickPower = 1.5, laitonClickPower = 1, chromeClickPower = 1, titaneClickPower = 1, bordeauxClickPower = 1, toulouseClickPower = 1;
+        let currentDemandPercent = 100, dollarPassiveIncome = 0;
+        
+        let selectedFactoryId = null; let currentEvent = null; let eventTimer = 0; let eventSpawnCounter = 0;
+        let frenzyEnergy = 0; let isFrenzy = false; let frenzyTimer = 0;
+        let contractRefreshTimer = 30; // TIMER RAFRAÎCHISSEMENT 30 SECONDES
+
+        // --- BREVETS & ARBRE R&D ---
+        const researchTreeData = [
+            { id: 'tech_alliage', name: "Forage au Diamant", desc: "Coût des puits -15%", cost: 25, req: null },
+            { id: 'tech_bras', name: "Pompage Hydraulique", desc: "Efficacité des Pompes Chevalet x2", cost: 60, req: 'tech_alliage' },
+            { id: 'tech_marketing', name: "Cartel de l'OPEP", desc: "Demande mondiale maximale portée à 300%", cost: 150, req: 'tech_bras' },
+            { id: 'tech_robot', name: "Forage 100% Automatisé", desc: "Production globale de pétrole +35%", cost: 350, req: 'tech_marketing' }
+        ];
+
+        // SITES PÉTROLIERS
+        const factoriesData = [
+            { id: 'paris', name: 'Champ de Forage QG', desc: 'Siège social et puits onshore de pétrole brut.', cost: 0, costText: 'Déjà débloqué', x: 50, y: 45, icon: '🛢️', status: 'unlocked' },
+            { id: 'lyon', name: 'Raffinerie de Bitume & Asphalte', desc: 'Transformation en bitume pour routes et constructions.', cost: 500000000, costText: '500 M $', x: 68, y: 65, icon: '⬛', status: 'available' },
+            { id: 'marseille', name: 'Terminal Kérosène & Carburants', desc: 'Raffinage haute qualité pour aviation et supercars.', cost: 10000000000, costText: '10 Md $', x: 72, y: 85, icon: '⛽', status: 'available' },
+            { id: 'orleans', name: 'Complexe Pétrochimique', desc: 'Synthèse de plastiques, polymères et engrais.', cost: 100000000000, costText: '100 Md $', x: 48, y: 58, icon: '🧪', status: 'available' },
+            { id: 'bordeaux', name: 'Terminal Maritime & Supertankers', desc: 'Flotte de tankers pour l\'exportation internationale.', cost: 1000000000000, costText: '1 Tn $', x: 28, y: 72, icon: '🚢', status: 'available' },
+            { id: 'toulouse', name: 'Plateformes Deepsea & Titan', desc: 'Forage ultra-profond et stations d\'extraction spatiales.', cost: 20000000000000, costText: '20 Tn $', x: 42, y: 80, icon: '🏗️', status: 'available' }
+        ];
+
+        const managersData = [ 
+            { name: "Géologue de Chantier", desc: "Sondage Auto (+1 pression/s/niv)", baseCost: 500000 }, 
+            { name: "Chef d'Exploitation", desc: "Pompage Auto (+1 baril/s/niv)", baseCost: 1000000 }, 
+            { name: "Trader en Hydrocarbures", desc: "Ajuste automatiquement le prix du baril !", baseCost: 5000000 } 
+        ];
+        
+        // ACHAT À 1 SEUL MATÉRIEL : BARILS (🛢️) UNIQUEMENT
+        const shops = [ 
+            { name: "Pompe Manuelle", prod: 0.8, baseClipCost: 10 }, 
+            { name: "Pompe Chevalet (Jack Pump)", prod: 4, baseClipCost: 60 }, 
+            { name: "Foreuse Rotative", prod: 18, baseClipCost: 400 }, 
+            { name: "Puits Haute Pression", prod: 75, baseClipCost: 2500 }, 
+            { name: "Complexe de Forage Onshore", prod: 350, baseClipCost: 15000 }, 
+            { name: "Injecteur à Vapeur", prod: 1800, baseClipCost: 100000 }, 
+            { name: "Champ Pétrolier Géant", prod: 8000, baseClipCost: 750000 }, 
+            { name: "Puits Stratosphérique", prod: 40000, baseClipCost: 5000000 } 
+        ];
+
+        // ACHAT À 1 SEUL MATÉRIEL : PRESSION (🪨) UNIQUEMENT
+        const metalShops = [ 
+            { name: "Sonde Sismique", prod: 1, baseCost: 30 }, 
+            { name: "Scanner Géophysique", prod: 5, baseCost: 200 }, 
+            { name: "Carottage Profond", prod: 25, baseCost: 1200 }, 
+            { name: "Station de Fracture Hydraulique", prod: 110, baseCost: 8000 }, 
+            { name: "Thermal Steam Injection", prod: 550, baseCost: 50000 }, 
+            { name: "Forage Sous-Mantellique", prod: 2800, baseCost: 350000 }, 
+            { name: "Extracteur Noyau Terre", prod: 14000, baseCost: 2500000 }, 
+            { name: "Puits Géothermique Stellaire", prod: 70000, baseCost: 15000000 } 
+        ];
+
+        // ACHAT À 1 SEUL MATÉRIEL : DOLLARS (💵) UNIQUEMENT
+        const dollarShops = [ 
+            { name: "Vannes Haute Pression", desc: "+1 puissance d'extraction manuelle", baseCost: 10000 }, 
+            { name: "Lobbying Énergétique", desc: "Demande mondiale de brut +10%", baseCost: 50000 }, 
+            { name: "Trading de Futures Oil", desc: "Revenus passifs sur les cours ($)", baseCost: 150000 } 
+        ];
+        
+        // ACHAT À 1 SEUL MATÉRIEL : BITUME (⬛) UNIQUEMENT
+        const lyonShops = [ 
+            { name: "Unité de Distillation Bitume", prod: 2, baseCost: 250 }, 
+            { name: "Malaxeur d'Asphalte", prod: 12, baseCost: 1800 }, 
+            { name: "Presse à Enrobé", prod: 60, baseCost: 12000 }, 
+            { name: "Centrale Routière Industrielle", prod: 300, baseCost: 90000 } 
+        ];
+
+        // ACHAT À 1 SEUL MATÉRIEL : KÉROSÈNE (⛽) UNIQUEMENT
+        const marseilleShops = [ 
+            { name: "Tour de Craquage Catalytique", prod: 5, baseCost: 1000 }, 
+            { name: "Unité d'Hydrotraitement", prod: 28, baseCost: 7500 }, 
+            { name: "Réservoirs Kérosène Aviation", prod: 140, baseCost: 45000 }, 
+            { name: "Terminal Carburant High-Octane", prod: 750, baseCost: 300000 } 
+        ];
+
+        // ACHAT À 1 SEUL MATÉRIEL : POLYMÈRES (🧪) UNIQUEMENT
+        const orleansShops = [ 
+            { name: "Autoclave à Polymères", prod: 15, baseCost: 5000 }, 
+            { name: "Ligne d'Extrusion Plastique", prod: 85, baseCost: 35000 }, 
+            { name: "Synthétiseur de Résines", prod: 450, baseCost: 220000 }, 
+            { name: "Usine Pétrochimique Globale", prod: 2200, baseCost: 1500000 } 
+        ];
+
+        // ACHAT À 1 SEUL MATÉRIEL : TANKERS (🚢) UNIQUEMENT
+        const bordeauxShops = [
+            { name: "Oléoduc Coastal", prod: 50, baseCost: 25000 },
+            { name: "Docks de Chargement Tanker", prod: 300, baseCost: 175000 },
+            { name: "Supertanker VLCC", prod: 1800, baseCost: 1250000 },
+            { name: "Flotte Transocéanique ULCC", prod: 10000, baseCost: 10000000 }
+        ];
+
+        // ACHAT À 1 SEUL MATÉRIEL : RIGS (🏗️) UNIQUEMENT
+        const toulouseShops = [
+            { name: "Jack-Up Rig Ultra-Profond", prod: 200, baseCost: 100000 },
+            { name: "Plateforme Semi-Submersible", prod: 1200, baseCost: 750000 },
+            { name: "Vessel d'Extraction Deepsea", prod: 7500, baseCost: 6000000 },
+            { name: "Titan Rig Orbitale", prod: 45000, baseCost: 45000000 }
+        ];
+
+        const achievements = [
+            { id: "ach_click1", name: "Premier coup de pioche", desc: "Extraire 1 baril manuellement", req: () => (state.manualClicks || 0) >= 1 },
+            { id: "ach_clip1", name: "Petit Forage", desc: "Produire 10 000 barils de brut au total", req: () => (state.totalTrombones || state.trombones) >= 10000 },
+            { id: "ach_laiton", name: "Maître de l'Asphalte", desc: "Produire 500 Bitume", req: () => (state.totalLaiton || state.laiton) >= 500 },
+            { id: "ach_chrome", name: "Plein de Kérosène", desc: "Récolter 500 Kérosène", req: () => (state.totalChrome || state.chrome) >= 500 },
+            { id: "ach_titane", name: "Pétrochimiste", desc: "Produire 100 Produits Pétrochimiques", req: () => (state.totalTitane || state.titane) >= 100 },
+            { id: "ach_bordeaux", name: "Armateur de Tankers", desc: "Débloquer le Terminal de Bordeaux", req: () => state.factories && state.factories.bordeaux },
+            { id: "ach_toulouse", name: "Roi de l'Offshore", desc: "Débloquer le Complexe Deepsea de Toulouse", req: () => state.factories && state.factories.toulouse }
+        ];
+
+        const bgMusic = document.getElementById('bgMusic');
+        function forcePlayMusic() { if (state.volume === 0) { state.volume = 20; document.getElementById('volumeSlider').value = 20; } bgMusic.volume = state.volume / 100; bgMusic.play().catch(()=>{}); toggleMenu(); }
+        function updateVolume(val) { state.volume = parseInt(val); bgMusic.volume = state.volume / 100; document.getElementById('volDisplay').innerText = state.volume + "%"; if (state.volume > 0) bgMusic.play().catch(()=>{}); else bgMusic.pause(); }
+
+        let devClickCount = 0; let devClickTimer = null;
+        function handleDevClick() { devClickCount++; clearTimeout(devClickTimer); if (devClickCount >= 3) { openDevModal(); devClickCount = 0; } else { devClickTimer = setTimeout(() => { devClickCount = 0; }, 600); } }
+        
+        function switchDevPage(page) {
+            document.getElementById('devPage1').style.display = (page === 1) ? 'block' : 'none';
+            document.getElementById('devPage2').style.display = (page === 2) ? 'block' : 'none';
+            document.getElementById('devPage3').style.display = (page === 3) ? 'block' : 'none';
+
+            document.getElementById('devTab1').style.background = (page === 1) ? '#ef4444' : '#334155';
+            document.getElementById('devTab2').style.background = (page === 2) ? '#ef4444' : '#334155';
+            document.getElementById('devTab3').style.background = (page === 3) ? '#ef4444' : '#334155';
+        }
+
+        function openDevModal() { 
+            switchDevPage(1);
+            document.getElementById('devTrombones').value = Math.floor(state.trombones); 
+            document.getElementById('devMetal').value = Math.floor(state.metal); 
+            document.getElementById('devDollars').value = Math.floor(state.dollars); 
+            document.getElementById('devLaiton').value = Math.floor(state.laiton); 
+            document.getElementById('devChrome').value = Math.floor(state.chrome); 
+            document.getElementById('devTitane').value = Math.floor(state.titane); 
+            document.getElementById('devBordeaux').value = Math.floor(state.bordeauxNaval); 
+            document.getElementById('devToulouse').value = Math.floor(state.toulouseAero); 
+            document.getElementById('dev-modal').style.display = 'flex'; 
+        }
+        function closeDevModal() { document.getElementById('dev-modal').style.display = 'none'; }
+        function applyDevMode() {
+            let t = parseFloat(document.getElementById('devTrombones').value); 
+            let m = parseFloat(document.getElementById('devMetal').value); 
+            let d = parseFloat(document.getElementById('devDollars').value); 
+            let l = parseFloat(document.getElementById('devLaiton').value); 
+            let c = parseFloat(document.getElementById('devChrome').value); 
+            let ti = parseFloat(document.getElementById('devTitane').value);
+            let b = parseFloat(document.getElementById('devBordeaux').value);
+            let to = parseFloat(document.getElementById('devToulouse').value);
+
+            if(!isNaN(t)) { state.trombones = t; state.totalTrombones = Math.max(state.totalTrombones || 0, t); }
+            if(!isNaN(m)) { state.metal = m; state.totalMetal = Math.max(state.totalMetal || 0, m); }
+            if(!isNaN(d)) { state.dollars = d; state.totalDollars = Math.max(state.totalDollars || 0, d); }
+            if(!isNaN(l)) { state.laiton = l; state.totalLaiton = Math.max(state.totalLaiton || 0, l); }
+            if(!isNaN(c)) { state.chrome = c; state.totalChrome = Math.max(state.totalChrome || 0, c); }
+            if(!isNaN(ti)) { state.titane = ti; state.totalTitane = Math.max(state.totalTitane || 0, ti); }
+            if(!isNaN(b)) { state.bordeauxNaval = b; state.totalBordeauxNaval = Math.max(state.totalBordeauxNaval || 0, b); }
+            if(!isNaN(to)) { state.toulouseAero = to; state.totalToulouseAero = Math.max(state.totalToulouseAero || 0, to); }
+
+            updateStats(); updateUI(); closeDevModal(); showToast("⚙️ MODIFICATIONS APPLIQUÉES !", "#ef4444");
+        }
+
+        function generateNewQuest() {
+            let playerLevel = Math.max(1, (state.rdPoints || 0) + 1);
+            let types = [ 
+                { title: `Commande Urgente (Niv. ${playerLevel})`, desc: `Livre ${formatMoney(3000 * playerLevel)} 🛢️ rapidement`, target: 3000 * playerLevel, current: 0, reward: 50000 * playerLevel, type: 'clip' }, 
+                { title: `Pression Critical (Niv. ${playerLevel})`, desc: `Accumule ${formatMoney(1500 * playerLevel)} 🪨 de pression`, target: 1500 * playerLevel, current: 0, reward: 35000 * playerLevel, type: 'metal' } 
+            ];
+            state.activeQuest = { ...types[Math.floor(Math.random() * types.length)], timeLeft: 60 };
+        }
+
+        let touchStartX = 0, currentScreen = 2; const swipeContainer = document.getElementById('swipeContainer'); updateSwipeScreen();
+        window.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+        window.addEventListener('touchend', e => {
+            let diff = touchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 40) { if (diff > 0 && currentScreen < 3) currentScreen++; else if (diff < 0 && currentScreen > 0) currentScreen--; updateSwipeScreen(); }
+        });
+        function changeScreen(direction) { currentScreen = Math.max(0, Math.min(3, currentScreen + direction)); updateSwipeScreen(); }
+        function updateSwipeScreen() { swipeContainer.style.transform = `translateX(-${currentScreen * 25}%)`; for(let i=0; i<4; i++) document.getElementById('dot' + i).classList.toggle('active', currentScreen === i); }
+
+        function toggleMenu() { document.getElementById('menuDropdown').style.display = document.getElementById('menuDropdown').style.display === "block" ? "none" : "block"; }
+        window.onclick = function(event) { if (!event.target.matches('.hamburger-btn') && !event.target.closest('#btnBuyMode') && !event.target.closest('#volumeSlider')) document.getElementById('menuDropdown').style.display = "none"; }
+        function toggleBuyMode() { buyMode = (buyMode === 1) ? 10 : (buyMode === 10) ? 'MAX' : 1; document.getElementById('btnBuyMode').innerText = "x" + buyMode; updateUI(); }
+        function formatMoney(amount) { if (isNaN(amount)) return "0"; if (amount >= 1000000000000) return (amount / 1000000000000).toFixed(2) + " Tn"; if (amount >= 1000000000) return (amount / 1000000000).toFixed(2) + " Md"; if (amount >= 1000000) return (amount / 1000000).toFixed(2) + " M"; if (amount >= 1000) return (amount / 1000).toFixed(1) + " k"; return Math.floor(amount); }
+        function showToast(msg, color="#f59e0b") { let t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; t.style.borderColor = color; document.getElementById('toast-container').appendChild(t); setTimeout(() => { if(t) t.remove(); }, 3000); }
+
+        function getManagerCost(i) { return Math.floor(managersData[i].baseCost * Math.pow(2.2, state.managerLevels[i] || 0)); }
+        
+        function getPurchaseInfo(type, index) {
+            let b1, mult, res1, count;
+
+            if (type === 'clip') { b1 = shops[index].baseClipCost; mult = 1.15; res1 = state.trombones; count = state.counts[index] || 0; } 
+            else if (type === 'titane') { b1 = orleansShops[index].baseCost; mult = 1.20; res1 = state.titane; count = state.titaneCounts[index] || 0; }
+            else if (type === 'laiton') { b1 = lyonShops[index].baseCost; mult = 1.18; res1 = state.laiton; count = state.laitonCounts[index] || 0; }
+            else if (type === 'chrome') { b1 = marseilleShops[index].baseCost; mult = 1.18; res1 = state.chrome; count = state.chromeCounts[index] || 0; }
+            else if (type === 'bordeaux') { b1 = bordeauxShops[index].baseCost; mult = 1.22; res1 = state.bordeauxNaval; count = state.bordeauxCounts[index] || 0; }
+            else if (type === 'toulouse') { b1 = toulouseShops[index].baseCost; mult = 1.22; res1 = state.toulouseAero; count = state.toulouseCounts[index] || 0; }
+            else if (type === 'metal') { b1 = metalShops[index].baseCost; mult = 1.18; res1 = state.metal; count = state.metalCounts[index] || 0; } 
+            else { b1 = dollarShops[index].baseCost; mult = 1.40; res1 = state.dollars; count = state.dollarCounts[index] || 0; }
+            
+            let n = 0, c1 = 0;
+            if (buyMode === 'MAX') {
+                while(n < 999) {
+                    let nextC1 = Math.floor(b1 * Math.pow(mult, count + n));
+                    if (c1 + nextC1 > res1) break; c1 += nextC1; n++;
+                }
+                if (n === 0) { n = 1; c1 = Math.floor(b1 * Math.pow(mult, count)); }
+            } else { n = buyMode; c1 = Math.floor(b1 * Math.pow(mult, count) * (Math.pow(mult, n) - 1) / (mult - 1)); }
+            return { n, c1, canBuy: (res1 >= c1) };
+        }
+
+        function openStatsModal() { renderStats(); document.getElementById('stats-modal').style.display = 'flex'; }
+        function closeStatsModal() { document.getElementById('stats-modal').style.display = 'none'; }
+        function renderStats() {
+            let container = document.getElementById('stats-content');
+            let unlockedFacs = Object.values(state.factories || {}).filter(Boolean).length;
+            container.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:8px; font-size:13px; color:#cbd5e1;">
+                    <div style="font-weight:bold; color:#fcd34d; border-bottom:1px solid #475569; padding-bottom:4px; margin-bottom:4px;">📈 Extractions Totales</div>
+                    <div>🛢️ Barils de Brut totaux : <b style="color:#f59e0b;">${formatMoney(state.totalTrombones || 0)}</b></div>
+                    <div>🪨 Pression/Sondages accumulés : <b style="color:#64748b;">${formatMoney(state.totalMetal || 0)}</b></div>
+                    <div>💵 Petrodollars totaux : <b style="color:#34d399;">${formatMoney(state.totalDollars || 0)} $</b></div>
+                    <div>⬛ Bitume & Asphalte : <b style="color:#b45309;">${formatMoney(state.totalLaiton || 0)}</b></div>
+                    <div>⛽ Kérosène Raffiné : <b style="color:#0284c7;">${formatMoney(state.totalChrome || 0)}</b></div>
+                    <div>🧪 Pétrochimie : <b style="color:#059669;">${formatMoney(state.totalTitane || 0)}</b></div>
+                    <div>🚢 Cargos Tankers : <b style="color:#94a3b8;">${formatMoney(state.totalBordeauxNaval || 0)}</b></div>
+                    <div>🏗️ Rigs Deepsea : <b style="color:#7c3aed;">${formatMoney(state.totalToulouseAero || 0)}</b></div>
+                    
+                    <div style="font-weight:bold; color:#fcd34d; border-bottom:1px solid #475569; padding-bottom:4px; margin-top:10px; margin-bottom:4px;">🕹️ Activité de Pompage</div>
+                    <div>👆 Coups de pompe manuels : <b style="color:#f8fafc;">${(state.manualClicks || 0).toLocaleString()}</b></div>
+                    <div>🔥 Éruptions activées : <b style="color:#f59e0b;">${state.frenzyCount || 0}</b></div>
+                    
+                    <div style="font-weight:bold; color:#fcd34d; border-bottom:1px solid #475569; padding-bottom:4px; margin-top:10px; margin-bottom:4px;">🏭 Empire Pétrolier</div>
+                    <div>🏢 Sites exploités : <b style="color:#f59e0b;">${unlockedFacs} / 6 complexes</b></div>
+                    <div>🧪 Technologies & Brevets : <b style="color:#a78bfa;">${(state.unlockedTechs || []).length} / ${researchTreeData.length}</b></div>
+                    <div>💡 Brevets d'innovation : <b style="color:#fcd34d;">${Math.floor(state.researchBulbs || 0)}</b></div>
+                    <div>🏆 Trophées remportés : <b style="color:#10b981;">${(state.unlockedAchievements || []).length} / ${achievements.length}</b></div>
+                    <div>✨ Rang de Cartel (OPEP) : <b style="color:#d97706;">${state.rdPoints || 0}</b></div>
+                </div>
+            `;
+        }
+
+        function openLabModal() { renderResearchTree(); document.getElementById('lab-modal').style.display = 'flex'; }
+        function closeLabModal() { document.getElementById('lab-modal').style.display = 'none'; }
+        function renderResearchTree() {
+            document.getElementById('bulbHeaderCount').innerText = Math.floor(state.researchBulbs); document.getElementById('modalBulbsDisplay').innerText = Math.floor(state.researchBulbs) + " 💡";
+            document.getElementById('research-tree').innerHTML = researchTreeData.map(t => {
+                let unlocked = state.unlockedTechs && state.unlockedTechs.includes(t.id);
+                let missingReq = t.req !== null && (!state.unlockedTechs || !state.unlockedTechs.includes(t.req));
+                let canUnlock = !unlocked && !missingReq; let canAfford = state.researchBulbs >= t.cost;
+                return `<div class="shop-item tech-shop-item" style="${unlocked ? 'opacity:0.6;' : ''}"><div><strong style="font-size:13px">${t.name}</strong><br><small style="color:#cbd5e1;">${t.desc}</small>${missingReq ? '<br><small style="color:#ef4444;">Prérequis manquant</small>' : ''}<div class="shop-costs">${unlocked ? '<span style="color:#10b981">Brevet Déposé ✅</span>' : `Coût : ${t.cost} 💡`}</div></div>${!unlocked ? `<button class="buy-btn" style="background:#a78bfa;" ${canUnlock && canAfford ? '' : 'disabled'} onclick="buyTech('${t.id}', ${t.cost})">Déposer</button>` : ''}</div>`;
+            }).join('');
+        }
+        function buyTech(id, cost) { if (state.researchBulbs >= cost && !state.unlockedTechs.includes(id)) { state.researchBulbs -= cost; state.unlockedTechs.push(id); showToast("🧪 Brevet déposé avec succès !", "#a78bfa"); updateStats(); renderResearchTree(); updateUI(); } }
+
+        function triggerRandomEvent() {
+            if (currentEvent) return;
+            let types = [ { title: "🕵️ Trader International", desc: "Contrat spot de brut ! +250 000 $", rewardType: 'dollars', amount: 250000 }, { title: "🚛 Découverte de Nappe", desc: "+300 Pression de Gisement !", rewardType: 'metal', amount: 300 }, { title: "🧐 Stock Raffiné Premium", desc: "+100 Bitume & +50 Kérosène !", rewardType: 'prestige', amount: 100 } ];
+            currentEvent = types[Math.floor(Math.random() * types.length)]; eventTimer = 10;
+            document.getElementById('event-title').innerText = currentEvent.title; document.getElementById('event-desc').innerText = currentEvent.desc; document.getElementById('event-popup').style.display = 'block';
+        }
+        function resolveEventClick() {
+            if (!currentEvent) return;
+            if (currentEvent.rewardType === 'dollars') { state.dollars += currentEvent.amount; state.totalDollars = (state.totalDollars || 0) + currentEvent.amount; }
+            if (currentEvent.rewardType === 'metal') { state.metal += currentEvent.amount; state.totalMetal = (state.totalMetal || 0) + currentEvent.amount; }
+            if (currentEvent.rewardType === 'prestige') { state.laiton += 100; state.chrome += 50; state.totalLaiton = (state.totalLaiton||0)+100; state.totalChrome = (state.totalChrome||0)+50; }
+            showToast("✨ Opportunité saisie !", "#10b981"); closeEventPopup(); updateUI();
+        }
+        function closeEventPopup() { currentEvent = null; document.getElementById('event-popup').style.display = 'none'; }
+
+        // --- MAP ET USINES ---
+        function openMapModal() { renderMap(); document.getElementById('map-modal').style.display = 'flex'; }
+        function closeMapModal() { document.getElementById('map-modal').style.display = 'none'; }
+        function renderMap() {
+            document.getElementById('franceMapContainer').innerHTML = factoriesData.map(f => {
+                let unlocked = state.factories[f.id];
+                let pinClass = unlocked ? 'unlocked' : 'locked';
+                return `<div class="map-city" style="left: ${f.x}%; top: ${f.y}%;" onclick="selectFactory('${f.id}')"><div class="map-pin ${pinClass}">${f.icon}</div><div class="map-label">${f.name.split(' ')[0]}</div></div>`;
+            }).join('');
+        }
+        function selectFactory(id) {
+            let f = factoriesData.find(fac => fac.id === id); if (!f) return;
+            selectedFactoryId = id; let unlocked = state.factories[id];
+            document.getElementById('factoryTitle').innerText = f.name; document.getElementById('factoryDesc').innerText = f.desc;
+            let costDiv = document.getElementById('factoryCost'); let btn = document.getElementById('factoryActionBtn');
+            
+            if (unlocked) { 
+                costDiv.innerText = "✅ Exploitation active"; btn.style.display = 'block'; btn.innerText = (state.currentFactory === id) ? "📍 Site Actuel" : "🏢 Visiter le site"; btn.disabled = false;
+                btn.onclick = () => visitFactory(id);
+            } else { 
+                costDiv.innerText = "Coût : " + f.costText; btn.style.display = 'block'; btn.innerText = "Construire (" + formatMoney(f.cost) + " $)"; 
+                btn.disabled = (state.dollars < f.cost); btn.onclick = () => buySelectedFactory();
+            }
+        }
+        function buySelectedFactory() {
+            if (!selectedFactoryId) return; let f = factoriesData.find(fac => fac.id === selectedFactoryId);
+            if (!f || state.factories[selectedFactoryId]) return;
+            if (state.dollars >= f.cost) {
+                state.dollars -= f.cost; state.factories[selectedFactoryId] = true;
+                showToast("🎉 Nouveau complexe ouvert : " + f.name + " !", "#10b981");
+                selectFactory(selectedFactoryId); renderMap(); updateStats(); updateUI();
+            } else { showToast("❌ Petrodollars insuffisants ! Il vous faut " + formatMoney(f.cost) + " $", "#ef4444"); }
+        }
+        function visitFactory(id) {
+            if (['paris', 'lyon', 'marseille', 'orleans', 'bordeaux', 'toulouse'].includes(id) && state.factories[id]) {
+                state.currentFactory = id; closeMapModal(); showToast("✈️ Déplacement vers " + id.toUpperCase() + " !", "#f59e0b");
+                updateUI(); changeScreen(2 - currentScreen);
+            }
+        }
+
+        // --- CONTRATS D'EXPLORATION INDEXÉS SUR LE NIVEAU DU JOUEUR ---
+        function generateContracts() {
+            state.contracts = []; 
+            let playerLevel = Math.max(1, (state.rdPoints || 0) + 1);
+            let scale = Math.pow(1.35, playerLevel);
+            
+            for(let i=0; i<3; i++) {
+                let isClip = Math.random() > 0.5;
+                // Exigence calculée selon le niveau du joueur et la production actuelle
+                let baseReq = isClip 
+                    ? Math.max(100 * playerLevel, tromboneProduction * (25 + playerLevel * 5)) 
+                    : Math.max(200 * playerLevel, metalProduction * (25 + playerLevel * 5));
+                
+                let req = Math.floor(baseReq * (0.8 + Math.random() * 0.4));
+                let rew = isClip 
+                    ? Math.floor(req * state.clipPrice * (1.2 + playerLevel * 0.15)) 
+                    : Math.floor(req * 120 * (1.2 + Math.random() * 0.4) * scale);
+                    
+                state.contracts.push({ id: i, type: isClip ? 'clip' : 'metal', req: req, rew: rew, levelReq: playerLevel });
+            }
+        }
+
+        function acceptContract(index) { state.activeContract = { ...state.contracts[index], timeLeft: 60 }; state.contracts.splice(index, 1); updateUI(); }
+        function cancelContract() { state.activeContract = null; if(state.contracts.length === 0) generateContracts(); updateUI(); }
+        function deliverContract() {
+            if(!state.activeContract) return; let c = state.activeContract;
+            if(c.type === 'clip' && state.trombones >= c.req) { state.trombones -= c.req; state.dollars += c.rew; state.totalDollars = (state.totalDollars || 0) + c.rew; state.activeContract = null; showToast("✅ Contrat Honoré ! +" + formatMoney(c.rew) + "$", "#10b981"); } 
+            else if (c.type === 'metal' && state.metal >= c.req) { state.metal -= c.req; state.dollars += c.rew; state.totalDollars = (state.totalDollars || 0) + c.rew; state.activeContract = null; showToast("✅ Contrat Honoré ! +" + formatMoney(c.rew) + "$", "#10b981"); }
+            if(state.contracts.length === 0 && !state.activeContract) generateContracts(); updateUI();
+        }
+        function renderContracts() {
+            let ui = document.getElementById('contractsUI');
+            let mainTitle = document.getElementById('contractMainTitle');
+            let playerLevel = Math.max(1, (state.rdPoints || 0) + 1);
+            
+            if (mainTitle) {
+                mainTitle.innerHTML = `📋 Contrats (Niv. ${playerLevel}) <span style="font-size:10px; color:#38bdf8;">🔄 ${Math.ceil(contractRefreshTimer)}s</span>`;
+            }
+
+            if (!ui) return;
+            if (state.activeContract) {
+                let c = state.activeContract; let current = c.type === 'clip' ? state.trombones : state.metal;
+                let progress = Math.min(100, (current / c.req) * 100); let canDeliver = current >= c.req;
+                ui.innerHTML = `<div class="contract-card" style="border-left-color: #10b981;"><div class="contract-header">En cours (${c.timeLeft.toFixed(0)}s) <span style="color:#10b981;">+${formatMoney(c.rew)} $</span></div><div class="contract-details">Requis : ${formatMoney(c.req)} ${c.type==='clip'?'🛢️':'🪨'} <span>(Toi : ${formatMoney(current)})</span></div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${progress}%"></div></div><div style="display:flex; gap:8px; margin-top:8px;"><button class="contract-btn cancel" style="flex:1;" onclick="cancelContract()">Annuler</button><button class="contract-btn deliver" style="flex:1;" ${canDeliver ? '' : 'disabled'} onclick="deliverContract()">Livrer !</button></div></div>`;
+            } else { 
+                ui.innerHTML = state.contracts.map((c, i) => `<div class="contract-card"><div class="contract-header">Niv. ${c.levelReq || 1} - Offre #${i+1} <span style="color:#10b981;">+${formatMoney(c.rew)} $</span></div><div class="contract-details">Demande : ${formatMoney(c.req)} ${c.type==='clip'?'🛢️':'🪨'}</div><button class="contract-btn" style="margin-top:6px;" onclick="acceptContract(${i})">Accepter</button></div>`).join(''); 
+            }
+        }
+
+        function checkAchievements() {
+            if (!state.unlockedAchievements) state.unlockedAchievements = [];
+            achievements.forEach(ach => {
+                if (!state.unlockedAchievements.includes(ach.id) && ach.req()) {
+                    state.unlockedAchievements.push(ach.id);
+                    showToast("🏆 Succès Débloqué : " + ach.name, "#fcd34d");
+                    updateStats();
+                }
+            });
+        }
+        
+        function updateStats() {
+            achBonusMult = 1.0 + ((state.unlockedAchievements || []).length * 0.05); let globalMult = state.rdMultiplier * achBonusMult * eventBoost;
+            let hasRobot = state.unlockedTechs && state.unlockedTechs.includes('tech_robot');
+            let factoryBonus = hasRobot ? 1.35 : 1.0;
+
+            let hasBras = state.unlockedTechs && state.unlockedTechs.includes('tech_bras');
+            let rawClip = 0; for(let i=0; i<shops.length; i++) { let p = shops[i].prod; if(i === 1 && hasBras) p *= 2; rawClip += p * (state.counts[i] || 0); }
+            tromboneProduction = rawClip * globalMult * factoryBonus; clickPower = Math.max(1, Math.floor((1 + (tromboneProduction * 0.03) + ((state.dollarCounts[0]||0) * 1)) * globalMult));
+            
+            let rawMetal = 1.5; for(let i=0; i<metalShops.length; i++) rawMetal += metalShops[i].prod * (state.metalCounts[i] || 0);
+            metalProduction = rawMetal * globalMult * factoryBonus; metalClickPower = Math.max(1.5, Math.floor((1.5 + (metalProduction * 0.03) + ((state.dollarCounts[0]||0) * 1)) * globalMult));
+            
+            let rawLaiton = 0; for(let i=0; i<lyonShops.length; i++) rawLaiton += lyonShops[i].prod * (state.laitonCounts[i] || 0);
+            laitonProduction = rawLaiton * globalMult * factoryBonus; laitonClickPower = Math.max(1, Math.floor((1 + (laitonProduction * 0.04)) * globalMult));
+
+            let rawChrome = 0; for(let i=0; i<marseilleShops.length; i++) rawChrome += marseilleShops[i].prod * (state.chromeCounts[i] || 0);
+            chromeProduction = rawChrome * globalMult * factoryBonus; chromeClickPower = Math.max(1, Math.floor((1 + (chromeProduction * 0.04)) * globalMult));
+
+            let rawTitane = 0; for(let i=0; i<orleansShops.length; i++) rawTitane += orleansShops[i].prod * (state.titaneCounts[i] || 0);
+            titaneProduction = rawTitane * globalMult * factoryBonus; titaneClickPower = Math.max(1, Math.floor((1 + (rawTitane * 0.04)) * globalMult));
+
+            let rawBordeaux = 0; for(let i=0; i<bordeauxShops.length; i++) rawBordeaux += bordeauxShops[i].prod * (state.bordeauxCounts[i] || 0);
+            bordeauxProduction = rawBordeaux * globalMult * factoryBonus; bordeauxClickPower = Math.max(1, Math.floor((1 + (bordeauxProduction * 0.05)) * globalMult));
+
+            let rawToulouse = 0; for(let i=0; i<toulouseShops.length; i++) rawToulouse += toulouseShops[i].prod * (state.toulouseCounts[i] || 0);
+            toulouseProduction = rawToulouse * globalMult * factoryBonus; toulouseClickPower = Math.max(1, Math.floor((1 + (toulouseProduction * 0.05)) * globalMult));
+
+            let hasMarket = state.unlockedTechs && state.unlockedTechs.includes('tech_marketing');
+            let baseDemand = hasMarket ? 300 : 200; 
+            let aeroDemandBonus = (state.toulouseAero || 0) * 2;
+            
+            currentDemandPercent = Math.min(500, Math.max(5, Math.floor(baseDemand + aeroDemandBonus - (state.clipPrice * 0.5) + ((state.dollarCounts[1]||0) * 10))));
+            
+            dollarPassiveIncome = ((state.dollarCounts[2]||0) * 150 + (state.bordeauxNaval * 1000)) * eventBoost;
+        }
+
+        function updateUI() {
+            try {
+                let bg = document.querySelector('.dune-bg');
+                bg.className = 'dune-bg theme-' + state.currentFactory;
+                
+                let parisEl = document.getElementById('parisShopElements');
+                let orleansEl = document.getElementById('orleansShopElements');
+
+                if (state.currentFactory === 'paris') {
+                    parisEl.style.display = 'block'; orleansEl.style.display = 'none';
+                    document.getElementById('factoryName').innerText = "Forage de Pétrole Brut (QG)"; document.getElementById('factoryName').style.color = "#f59e0b";
+                    document.getElementById('factoryScore').innerText = formatMoney(state.trombones) + " 🛢️"; document.getElementById('factoryScore').style.color = "#f8fafc";
+                    document.getElementById('factorySubInfo').innerHTML = `+<span id="factoryGps">${formatMoney(tromboneProduction * (currentDemandPercent / 100))}</span> / sec`;
+                    document.getElementById('factoryClickBtn').innerText = "🛢️"; document.getElementById('factoryClickBtn').className = "big-click-btn";
+                    document.getElementById('factoryQuickShopTitle').innerText = "🏗️ Derrick & Pompes :";
+
+                    let highestClip = -1; let shopHtml = shops.map((s, i) => { let info = getPurchaseInfo('clip', i); if ((state.counts[i]||0) > 0) highestClip = i; return `<div class="shop-item"><div><strong style="font-size:13px">${s.name} <span style="color:#f59e0b">(${state.counts[i]||0})</span></strong><br><small style="color:#94a3b8;">+${formatMoney(s.prod)} barils/s</small><div class="shop-costs">🛢️ ${formatMoney(info.c1)}</div></div><button class="buy-btn" ${info.canBuy ? '' : 'disabled'} onclick="buy('clip', ${i}, ${info.n}, ${info.c1})">Achat x${info.n}</button></div>`; }); 
+                    document.getElementById('shop').innerHTML = shopHtml.join(''); 
+                    let startC = Math.max(0, Math.min(highestClip > 0 ? highestClip - 1 : 0, shops.length - 3)); 
+                    document.getElementById('quickShopFactory').innerHTML = shopHtml.slice(startC, startC + 3).join('');
+
+                } else if (state.currentFactory === 'lyon') {
+                    parisEl.style.display = 'none'; orleansEl.style.display = 'block';
+                    document.getElementById('otherFactoryShopTitle').innerText = "Raffinerie de Bitume (Lyon / Feyzin)";
+                    document.getElementById('dedicatedShopTitle').innerText = "⬛ Équipements Asphalte & Enrobé :";
+                    document.getElementById('dedicatedShopTitle').style.color = "#b45309";
+
+                    document.getElementById('factoryName').innerText = "Raffinerie de Bitume"; document.getElementById('factoryName').style.color = "#b45309";
+                    document.getElementById('factoryScore').innerText = formatMoney(state.laiton) + " ⬛"; document.getElementById('factoryScore').style.color = "#b45309";
+                    document.getElementById('factorySubInfo').innerHTML = `+<span id="factoryGps">${formatMoney(laitonProduction)}</span> Bitume / sec`;
+                    document.getElementById('factoryClickBtn').innerText = "⬛"; document.getElementById('factoryClickBtn').className = "big-click-btn laiton-click-btn";
+                    document.getElementById('factoryQuickShopTitle').innerText = "⬛ Traitement de Bitume :";
+
+                    let laitonHtml = lyonShops.map((s, i) => { let info = getPurchaseInfo('laiton', i); return `<div class="shop-item laiton-shop-item"><div><strong style="font-size:13px">${s.name} <span style="color:#b45309">(${state.laitonCounts[i]||0})</span></strong><br><small style="color:#94a3b8;">+${formatMoney(s.prod)} Bitume/s</small><div class="shop-costs">⬛ ${formatMoney(info.c1)} Bitume</div></div><button class="buy-btn" style="background:#b45309;" ${info.canBuy ? '' : 'disabled'} onclick="buy('laiton', ${i}, ${info.n}, ${info.c1})">Achat x${info.n}</button></div>`; });
+                    document.getElementById('dedicatedFactoryShopList').innerHTML = laitonHtml.join('');
+                    document.getElementById('quickShopFactory').innerHTML = laitonHtml.join('');
+
+                } else if (state.currentFactory === 'marseille') {
+                    parisEl.style.display = 'none'; orleansEl.style.display = 'block';
+                    document.getElementById('otherFactoryShopTitle').innerText = "Terminal Kérosène (Fos / Marseille)";
+                    document.getElementById('dedicatedShopTitle').innerText = "⛽ Craquage & Kérosène Premium :";
+                    document.getElementById('dedicatedShopTitle').style.color = "#0284c7";
+
+                    document.getElementById('factoryName').innerText = "Kérosène & Carburants"; document.getElementById('factoryName').style.color = "#0284c7";
+                    document.getElementById('factoryScore').innerText = formatMoney(state.chrome) + " ⛽"; document.getElementById('factoryScore').style.color = "#0284c7";
+                    document.getElementById('factorySubInfo').innerHTML = `+<span id="factoryGps">${formatMoney(chromeProduction)}</span> Kérosène / sec`;
+                    document.getElementById('factoryClickBtn').innerText = "⛽"; document.getElementById('factoryClickBtn').className = "big-click-btn chrome-click-btn";
+                    document.getElementById('factoryQuickShopTitle').innerText = "⛽ Distillation Kérosène :";
+
+                    let chromeHtml = marseilleShops.map((s, i) => { let info = getPurchaseInfo('chrome', i); return `<div class="shop-item chrome-shop-item"><div><strong style="font-size:13px">${s.name} <span style="color:#0284c7">(${state.chromeCounts[i]||0})</span></strong><br><small style="color:#94a3b8;">+${formatMoney(s.prod)} Kérosène/s</small><div class="shop-costs">⛽ ${formatMoney(info.c1)} Kérosène</div></div><button class="buy-btn" style="background:#0284c7;" ${info.canBuy ? '' : 'disabled'} onclick="buy('chrome', ${i}, ${info.n}, ${info.c1})">Achat x${info.n}</button></div>`; });
+                    document.getElementById('dedicatedFactoryShopList').innerHTML = chromeHtml.join('');
+                    document.getElementById('quickShopFactory').innerHTML = chromeHtml.join('');
+
+                } else if (state.currentFactory === 'orleans') {
+                    parisEl.style.display = 'none'; orleansEl.style.display = 'block';
+                    document.getElementById('otherFactoryShopTitle').innerText = "Complexe Pétrochimique (Orléans / Le Havre)";
+                    document.getElementById('dedicatedShopTitle').innerText = "🧪 Synthèse de Polymères & Plastiques :";
+                    document.getElementById('dedicatedShopTitle').style.color = "#059669";
+
+                    document.getElementById('factoryName').innerText = "Pétrochimie & Polymères"; document.getElementById('factoryName').style.color = "#059669";
+                    document.getElementById('factoryScore').innerText = formatMoney(state.titane) + " 🧪"; document.getElementById('factoryScore').style.color = "#059669";
+                    document.getElementById('factorySubInfo').innerHTML = `+<span id="factoryGps">${formatMoney(titaneProduction)}</span> Polymères / sec`;
+                    document.getElementById('factoryClickBtn').innerText = "🧪"; document.getElementById('factoryClickBtn').className = "big-click-btn titane-click-btn";
+                    document.getElementById('factoryQuickShopTitle').innerText = "🧪 Synthèse Polymères :";
+
+                    let titaneHtml = orleansShops.map((s, i) => { let info = getPurchaseInfo('titane', i); return `<div class="shop-item titane-shop-item"><div><strong style="font-size:13px">${s.name} <span style="color:#059669">(${state.titaneCounts[i]||0})</span></strong><br><small style="color:#94a3b8;">+${formatMoney(s.prod)} Plastiques/s</small><div class="shop-costs">🧪 ${formatMoney(info.c1)} Plastiques</div></div><button class="buy-btn" style="background:#059669;" ${info.canBuy ? '' : 'disabled'} onclick="buy('titane', ${i}, ${info.n}, ${info.c1})">Achat x${info.n}</button></div>`; }); 
+                    document.getElementById('dedicatedFactoryShopList').innerHTML = titaneHtml.join('');
+                    document.getElementById('quickShopFactory').innerHTML = titaneHtml.join('');
+
+                } else if (state.currentFactory === 'bordeaux') {
+                    parisEl.style.display = 'none'; orleansEl.style.display = 'block';
+                    document.getElementById('otherFactoryShopTitle').innerText = "Terminal Maritime & Supertankers (Bordeaux)";
+                    document.getElementById('dedicatedShopTitle').innerText = "🚢 Oléoducs & Tankers Transocéaniques :";
+                    document.getElementById('dedicatedShopTitle').style.color = "#94a3b8";
+
+                    document.getElementById('factoryName').innerText = "Terminal Supertankers"; document.getElementById('factoryName').style.color = "#94a3b8";
+                    document.getElementById('factoryScore').innerText = formatMoney(state.bordeauxNaval) + " 🚢"; document.getElementById('factoryScore').style.color = "#94a3b8";
+                    document.getElementById('factorySubInfo').innerHTML = `+<span id="factoryGps">${formatMoney(bordeauxProduction)}</span> Tankers / sec`;
+                    document.getElementById('factoryClickBtn').innerText = "🚢"; document.getElementById('factoryClickBtn').className = "big-click-btn bordeaux-click-btn";
+                    document.getElementById('factoryQuickShopTitle').innerText = "🚢 Flotte Transocéanique :";
+
+                    let bordeauxHtml = bordeauxShops.map((s, i) => { let info = getPurchaseInfo('bordeaux', i); return `<div class="shop-item bordeaux-shop-item"><div><strong style="font-size:13px">${s.name} <span style="color:#94a3b8">(${state.bordeauxCounts[i]||0})</span></strong><br><small style="color:#94a3b8;">+${formatMoney(s.prod)} Tankers/s</small><div class="shop-costs">🚢 ${formatMoney(info.c1)} Tankers</div></div><button class="buy-btn" style="background:#475569;" ${info.canBuy ? '' : 'disabled'} onclick="buy('bordeaux', ${i}, ${info.n}, ${info.c1})">Achat x${info.n}</button></div>`; });
+                    document.getElementById('dedicatedFactoryShopList').innerHTML = bordeauxHtml.join('');
+                    document.getElementById('quickShopFactory').innerHTML = bordeauxHtml.join('');
+
+                } else if (state.currentFactory === 'toulouse') {
+                    parisEl.style.display = 'none'; orleansEl.style.display = 'block';
+                    document.getElementById('otherFactoryShopTitle').innerText = "Complexe Offshore Deepsea & Titan (Toulouse)";
+                    document.getElementById('dedicatedShopTitle').innerText = "🏗️ Plateformes Deepsea & Titan Rig :";
+                    document.getElementById('dedicatedShopTitle').style.color = "#7c3aed";
+
+                    document.getElementById('factoryName').innerText = "Deepsea & Titan Rig"; document.getElementById('factoryName').style.color = "#7c3aed";
+                    document.getElementById('factoryScore').innerText = formatMoney(state.toulouseAero) + " 🏗️"; document.getElementById('factoryScore').style.color = "#7c3aed";
+                    document.getElementById('factorySubInfo').innerHTML = `+<span id="factoryGps">${formatMoney(toulouseProduction)}</span> Rigs / sec`;
+                    document.getElementById('factoryClickBtn').innerText = "🏗️"; document.getElementById('factoryClickBtn').className = "big-click-btn toulouse-click-btn";
+                    document.getElementById('factoryQuickShopTitle').innerText = "🏗️ Extraction Ultra-Profonde :";
+
+                    let toulouseHtml = toulouseShops.map((s, i) => { let info = getPurchaseInfo('toulouse', i); return `<div class="shop-item toulouse-shop-item"><div><strong style="font-size:13px">${s.name} <span style="color:#7c3aed">(${state.toulouseCounts[i]||0})</span></strong><br><small style="color:#94a3b8;">+${formatMoney(s.prod)} Rigs/s</small><div class="shop-costs">🏗️ ${formatMoney(info.c1)} Rigs</div></div><button class="buy-btn" style="background:#7c3aed;" ${info.canBuy ? '' : 'disabled'} onclick="buy('toulouse', ${i}, ${info.n}, ${info.c1})">Achat x${info.n}</button></div>`; });
+                    document.getElementById('dedicatedFactoryShopList').innerHTML = toulouseHtml.join('');
+                    document.getElementById('quickShopFactory').innerHTML = toulouseHtml.join('');
+                }
+
+                document.getElementById('metalScore').innerText = formatMoney(state.metal); document.getElementById('dollarScore').innerText = formatMoney(state.dollars) + " $"; document.getElementById('metalGps').innerText = formatMoney(metalProduction);
+                let rdBonusEl = document.getElementById('rdBonus'); if (rdBonusEl) rdBonusEl.innerText = state.rdMultiplier.toFixed(1);
+                document.getElementById('clipPriceDisplay').innerText = state.clipPrice.toFixed(2) + " $"; document.getElementById('clientDemand').innerText = currentDemandPercent + "%";
+                document.getElementById('renaissanceBadge').innerText = state.rdPoints; document.getElementById('bulbHeaderCount').innerText = Math.floor(state.researchBulbs);
+                renderContracts();
+
+                let questUI = document.getElementById('questUI');
+                if (state.activeQuest) { let q = state.activeQuest; let prog = Math.min(100, (q.current / q.target) * 100); questUI.innerHTML = `<div class="contract-header">${q.title} <span style="color:#34d399;">+${formatMoney(q.reward)} $</span></div><div class="contract-details">${q.desc} (${q.timeLeft.toFixed(0)}s)</div><div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${prog}%"></div></div>`; } 
+                else { questUI.innerHTML = `<div class="contract-header">Aucun défi actif</div><div class="contract-details">Nouveau défi imminent...</div>`; }
+
+                document.getElementById('managerShop').innerHTML = managersData.map((m, i) => { let cost = getManagerCost(i); return `<div class="shop-item manager-shop-item"><div><strong style="font-size:13px">${m.name} <span style="color:#ec4899">(Niv. ${state.managerLevels[i]||0})</span></strong><br><small style="color:#cbd5e1;">${m.desc}</small><div class="shop-costs">💵 ${formatMoney(cost)} $</div></div><button class="buy-btn" style="background:#ec4899;" ${state.dollars >= cost ? '' : 'disabled'} onclick="buyManager(${i})">Embaucher</button></div>`; }).join('');
+                let highestMetal = -1; let metalHtml = metalShops.map((s, i) => { let info = getPurchaseInfo('metal', i); if ((state.metalCounts[i]||0) > 0) highestMetal = i; return `<div class="shop-item metal-shop-item"><div><strong style="font-size:13px">${s.name} <span style="color:#64748b">(${state.metalCounts[i]||0})</span></strong><br><small style="color:#94a3b8;">+${formatMoney(s.prod)}/s</small><div class="shop-costs">🪨 ${formatMoney(info.c1)} pression</div></div><button class="buy-btn" style="background:#64748b;" ${info.canBuy ? '' : 'disabled'} onclick="buy('metal', ${i}, ${info.n}, ${info.c1})">Achat x${info.n}</button></div>`; }); 
+                document.getElementById('metalShop').innerHTML = metalHtml.join(''); let startM = Math.max(0, Math.min(highestMetal > 0 ? highestMetal - 1 : 0, metalShops.length - 3)); document.getElementById('quickShopMetal').innerHTML = metalHtml.slice(startM, startM + 3).join('');
+                
+                let dollarHtml = dollarShops.map((s, i) => { let info = getPurchaseInfo('dollar', i); return `<div class="shop-item dollar-shop-item"><div><strong style="font-size:13px">${s.name} <span style="color:#34d399">(${state.dollarCounts[i]||0})</span></strong><br><small style="color:#94a3b8;">${s.desc}</small><div class="shop-costs">💵 ${formatMoney(info.c1)} $</div></div><button class="buy-btn" style="background:#10b981;" ${info.canBuy ? '' : 'disabled'} onclick="buy('dollar', ${i}, ${info.n}, ${info.c1})">Achat x${info.n}</button></div>`; }); 
+                document.getElementById('dollarShop').innerHTML = dollarHtml.join(''); document.getElementById('quickShopDollar').innerHTML = dollarHtml.join('');
+            } catch (e) {
+                console.error("Crash UI:", e);
+            }
+        }
+
+        function changePrice(amount) { state.clipPrice = Math.max(1.00, Math.min(500.00, state.clipPrice + amount)); updateStats(); updateUI(); }
+        function buyManager(i) { let cost = getManagerCost(i); if (state.dollars >= cost) { state.dollars -= cost; state.managerLevels[i]++; updateStats(); updateUI(); } }
+        
+        function buy(type, index, n, cost1) {
+            if(type === 'clip' && state.trombones >= cost1) { state.trombones -= cost1; state.counts[index] += n; } 
+            else if(type === 'titane' && state.titane >= cost1) { state.titane -= cost1; state.titaneCounts[index] += n; } 
+            else if(type === 'laiton' && state.laiton >= cost1) { state.laiton -= cost1; state.laitonCounts[index] += n; }
+            else if(type === 'chrome' && state.chrome >= cost1) { state.chrome -= cost1; state.chromeCounts[index] += n; }
+            else if(type === 'bordeaux' && state.bordeauxNaval >= cost1) { state.bordeauxNaval -= cost1; state.bordeauxCounts[index] += n; }
+            else if(type === 'toulouse' && state.toulouseAero >= cost1) { state.toulouseAero -= cost1; state.toulouseCounts[index] += n; }
+            else if(type === 'metal' && state.metal >= cost1) { state.metal -= cost1; state.metalCounts[index] += n; } 
+            else if(type === 'dollar' && state.dollars >= cost1) { state.dollars -= cost1; state.dollarCounts[index] += n; } 
+            updateStats(); updateUI();
+        }
+        function recycleTrombones() { if (state.trombones >= 1000) { state.trombones -= 1000; state.metal += 200; state.totalMetal = (state.totalMetal || 0) + 200; updateUI(); showToast("♻️ Craquage : +200 Pression/Terre", "#d97706"); toggleMenu(); } }
+        
+        function showFloatingText(e, gain, isCrit, color) {
+            let f = document.createElement('div'); f.className = isCrit ? 'floating-text crit' : 'floating-text'; f.innerText = isCrit ? "+" + formatMoney(gain) + " CRITIQUE!" : "+" + formatMoney(gain); f.style.color = color; 
+            let cX = e.clientX || (e.touches && e.touches[0].clientX); let cY = e.clientY || (e.touches && e.touches[0].clientY); 
+            f.style.left = (cX - 15) + 'px'; f.style.top = (cY - 30) + 'px'; document.body.appendChild(f); setTimeout(() => f.remove(), 800);
+        }
+        function spawnParticles(e, emoji) { if(navigator.vibrate && !isFrenzy) navigator.vibrate(15); for(let i=0; i<3; i++) { let p = document.createElement('div'); p.innerText = emoji; p.className = 'particle'; let cX = e.clientX || (e.touches && e.touches[0].clientX); let cY = e.clientY || (e.touches && e.touches[0].clientY); p.style.left = (cX + (Math.random()-0.5)*20 - 10) + 'px'; p.style.top = (cY - 20) + 'px'; p.style.setProperty('--vx', (Math.random()-0.5)*150 + 'px'); p.style.setProperty('--vy', ((Math.random()) * 100 + 100) + 'px'); document.body.appendChild(p); setTimeout(()=>p.remove(), 800); } }
+
+        function activateFrenzy() { isFrenzy = true; frenzyTimer = 10; state.frenzyCount = (state.frenzyCount || 0) + 1; document.body.classList.add('frenzy-active'); eventBoost = 10; updateStats(); showToast("🔥 ÉRUPTION DU GISEMENT ! Pompage x10 !", "#f59e0b"); if(navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 100]); }
+
+        document.getElementById('factoryClickBtn').onpointerdown = (e) => { 
+            let isCrit = Math.random() < 0.05;
+            
+            if (state.currentFactory === 'paris') {
+                let gain = isCrit ? clickPower * 5 : clickPower; state.trombones += gain; state.totalTrombones = (state.totalTrombones || 0) + gain;
+                if(state.activeQuest && state.activeQuest.type === 'clip') { state.activeQuest.current += gain; if(state.activeQuest.current >= state.activeQuest.target) { state.dollars += state.activeQuest.reward; state.totalDollars = (state.totalDollars || 0) + state.activeQuest.reward; showToast("⚡ Appel d'offre réussi ! +" + formatMoney(state.activeQuest.reward) + "$", "#34d399"); generateNewQuest(); } }
+                spawnParticles(e, "🛢️"); showFloatingText(e, gain, isCrit, "#f59e0b");
+            } else if (state.currentFactory === 'lyon') {
+                let gain = isCrit ? laitonClickPower * 5 : laitonClickPower; state.laiton += gain; state.totalLaiton = (state.totalLaiton || 0) + gain;
+                spawnParticles(e, "⬛"); showFloatingText(e, gain, isCrit, "#b45309");
+            } else if (state.currentFactory === 'marseille') {
+                let gain = isCrit ? chromeClickPower * 5 : chromeClickPower; state.chrome += gain; state.totalChrome = (state.totalChrome || 0) + gain;
+                spawnParticles(e, "⛽"); showFloatingText(e, gain, isCrit, "#0284c7");
+            } else if (state.currentFactory === 'orleans') {
+                let gain = isCrit ? titaneClickPower * 5 : titaneClickPower; state.titane += gain; state.totalTitane = (state.totalTitane || 0) + gain;
+                spawnParticles(e, "🧪"); showFloatingText(e, gain, isCrit, "#059669");
+            } else if (state.currentFactory === 'bordeaux') {
+                let gain = isCrit ? bordeauxClickPower * 5 : bordeauxClickPower; state.bordeauxNaval += gain; state.totalBordeauxNaval = (state.totalBordeauxNaval || 0) + gain;
+                spawnParticles(e, "🚢"); showFloatingText(e, gain, isCrit, "#94a3b8");
+            } else if (state.currentFactory === 'toulouse') {
+                let gain = isCrit ? toulouseClickPower * 5 : toulouseClickPower; state.toulouseAero += gain; state.totalToulouseAero = (state.totalToulouseAero || 0) + gain;
+                spawnParticles(e, "🏗️"); showFloatingText(e, gain, isCrit, "#7c3aed");
+            }
+
+            state.manualClicks = (state.manualClicks || 0) + 1; 
+            if(!isFrenzy) frenzyEnergy = Math.min(100, frenzyEnergy + 5);
+            if(frenzyEnergy >= 100 && !isFrenzy) activateFrenzy();
+            updateUI(); 
+            if(isCrit && navigator.vibrate) navigator.vibrate([30, 30, 30]);
+        };
+
+        document.getElementById('clickMetalBtn').onpointerdown = (e) => { 
+            let isCrit = Math.random() < 0.05; let gain = isCrit ? metalClickPower * 5 : metalClickPower; state.metal += gain; state.totalMetal = (state.totalMetal || 0) + gain; state.manualClicks = (state.manualClicks || 0) + 1; 
+            if(state.activeQuest && state.activeQuest.type === 'metal') { state.activeQuest.current += gain; if(state.activeQuest.current >= state.activeQuest.target) { state.dollars += state.activeQuest.reward; state.totalDollars = (state.totalDollars || 0) + state.activeQuest.reward; showToast("⚡ Défi réussi ! +" + formatMoney(state.activeQuest.reward) + "$", "#34d399"); generateNewQuest(); } }
+            if(!isFrenzy) frenzyEnergy = Math.min(100, frenzyEnergy + 5); if(frenzyEnergy >= 100 && !isFrenzy) activateFrenzy();
+            updateUI(); spawnParticles(e, "🪨"); showFloatingText(e, gain, isCrit, "#64748b"); if(isCrit && navigator.vibrate) navigator.vibrate([30, 30, 30]);
+        };
+
+        function gameLoop() {
+            ticks++; if (ticks % 10 === 0) { checkAchievements(); if (tromboneProduction > 0 || titaneProduction > 0 || toulouseProduction > 0) state.researchBulbs += 0.15; }
+            eventSpawnCounter++; if (eventSpawnCounter >= 1500 && !currentEvent) { eventSpawnCounter = 0; if (Math.random() < 0.6) triggerRandomEvent(); }
+            if (currentEvent) { eventTimer -= 0.1; document.getElementById('event-timer-bar').style.width = (eventTimer / 10) * 100 + "%"; if (eventTimer <= 0) closeEventPopup(); }
+            if (state.activeQuest) { state.activeQuest.timeLeft -= 0.1; if (state.activeQuest.timeLeft <= 0) { showToast("❌ Délai dépassé...", "#f87171"); generateNewQuest(); } }
+            
+            // RAFRAÎCHISSEMENT AUTOMATIQUE DES CONTRATS TOUTES LES 30 SECONDES
+            contractRefreshTimer -= 0.1;
+            if (contractRefreshTimer <= 0) {
+                contractRefreshTimer = 30;
+                generateContracts();
+                showToast("🔄 Nouveaux contrats d'exportation disponibles !", "#38bdf8");
+            }
+
+            if(isFrenzy) { frenzyTimer -= 0.1; frenzyEnergy = (frenzyTimer / 10) * 100; if(frenzyTimer <= 0) { isFrenzy = false; frenzyEnergy = 0; document.body.classList.remove('frenzy-active'); eventBoost = 1; updateStats(); } } 
+            else { if(frenzyEnergy > 0) frenzyEnergy = Math.max(0, frenzyEnergy - 0.8); }
+            document.getElementById('frenzy-bar').style.width = frenzyEnergy + "%";
+
+            if (state.managerLevels[0] > 0) { let g = (metalClickPower * state.managerLevels[0]) / 10; state.metal += g; state.totalMetal = (state.totalMetal || 0) + g; }
+            if (state.managerLevels[1] > 0) {
+                if (state.currentFactory === 'paris') { let g = (clickPower * state.managerLevels[1]) / 10; state.trombones += g; state.totalTrombones = (state.totalTrombones || 0) + g; }
+                else if (state.currentFactory === 'lyon') { let g = (laitonClickPower * state.managerLevels[1]) / 10; state.laiton += g; state.totalLaiton = (state.totalLaiton || 0) + g; }
+                else if (state.currentFactory === 'marseille') { let g = (chromeClickPower * state.managerLevels[1]) / 10; state.chrome += g; state.totalChrome = (state.totalChrome || 0) + g; }
+                else if (state.currentFactory === 'orleans') { let g = (titaneClickPower * state.managerLevels[1]) / 10; state.titane += g; state.totalTitane = (state.totalTitane || 0) + g; }
+            }
+            if (state.managerLevels[2] > 0 && ticks % 10 === 0) { if (currentDemandPercent > 102 && state.clipPrice < 250.0) changePrice(1.00); else if (currentDemandPercent < 98 && state.clipPrice > 5.00) changePrice(-1.00); }
+            if (state.activeContract) { state.activeContract.timeLeft -= 0.1; if (state.activeContract.timeLeft <= 0) { showToast("❌ Temps écoulé...", "#f87171"); state.activeContract = null; if(state.contracts.length === 0) generateContracts(); } }
+            
+            let earnedLaiton = laitonProduction / 10; state.laiton += earnedLaiton; state.totalLaiton = (state.totalLaiton || 0) + earnedLaiton;
+            let earnedChrome = chromeProduction / 10; state.chrome += earnedChrome; state.totalChrome = (state.totalChrome || 0) + earnedChrome;
+            let earnedTitane = titaneProduction / 10; state.titane += earnedTitane; state.totalTitane = (state.totalTitane || 0) + earnedTitane;
+            let earnedBordeaux = bordeauxProduction / 10; state.bordeauxNaval += earnedBordeaux; state.totalBordeauxNaval = (state.totalBordeauxNaval || 0) + earnedBordeaux;
+            let earnedToulouse = toulouseProduction / 10; state.toulouseAero += earnedToulouse; state.totalToulouseAero = (state.totalToulouseAero || 0) + earnedToulouse;
+
+            let prestigeIncomeMultiplier = 1 + (state.laiton * 0.05) + (state.chrome * 0.25) + (state.titane * 1.5);
+
+            let sold = (tromboneProduction / 10) * (currentDemandPercent / 100); 
+            state.trombones += sold; state.totalTrombones = (state.totalTrombones || 0) + sold;
+            let earnedDollars = ((sold * state.clipPrice) + (dollarPassiveIncome / 10)) * (1 + (prestigeIncomeMultiplier * 0.01));
+            state.dollars += earnedDollars; state.totalDollars = (state.totalDollars || 0) + earnedDollars;
+            let earnedMetal = metalProduction / 10;
+            state.metal += earnedMetal; state.totalMetal = (state.totalMetal || 0) + earnedMetal;
+            
+            updateUI();
+        }
+
+        function openResearch() {
+            let cost = Math.floor(25000000 * Math.pow(8, state.rdPoints)); if (state.dollars < cost) return alert(`Il te faut ${formatMoney(cost)} $ !`);
+            if (confirm(`Coût : ${formatMoney(cost)} $. Tu réorganises ton cartel pétrolier (reset des sites secondaires, conservation de la R&D), et gagnes +1 Rang OPEP. Continuer ?`)) {
+                state.rdPoints += 1; state.rdMultiplier += 0.4; state.trombones = 0; state.metal = 100; state.dollars = 0; state.laiton = 0; state.chrome = 0; state.titane = 0; state.bordeauxNaval = 0; state.toulouseAero = 0;
+                state.counts = [0,0,0,0,0,0,0,0]; state.metalCounts = [0,0,0,0,0,0,0,0]; state.dollarCounts = [0,0,0]; 
+                state.laitonCounts = [0,0,0,0]; state.chromeCounts = [0,0,0,0]; state.titaneCounts = [0,0,0,0];
+                state.bordeauxCounts = [0,0,0,0]; state.toulouseCounts = [0,0,0,0];
+                state.contracts = []; state.activeContract = null; state.currentFactory = 'paris'; generateContracts(); updateStats(); updateUI(); saveGame(); showToast("✨ Cartel Restructuré !");
+            }
+        }
+        function saveGame() { state.lastOnline = Date.now(); localStorage.setItem('tycoonOilV3', JSON.stringify(state)); }
+        function manualSave() { saveGame(); showToast("✅ Sauvegardé !"); toggleMenu(); }
+        
+        function loadGame() {
+            let saved = localStorage.getItem('tycoonOilV3') || localStorage.getItem('tycoonOilV2') || localStorage.getItem('tycoonOilV1');
+            if (saved) {
+                let loaded = JSON.parse(saved); state = { ...state, ...loaded };
+            }
+            
+            if(!Array.isArray(state.counts)) state.counts = []; while(state.counts.length < shops.length) state.counts.push(0);
+            if(!Array.isArray(state.metalCounts)) state.metalCounts = []; while(state.metalCounts.length < metalShops.length) state.metalCounts.push(0);
+            if(!Array.isArray(state.dollarCounts)) state.dollarCounts = []; while(state.dollarCounts.length < dollarShops.length) state.dollarCounts.push(0);
+            if(!Array.isArray(state.laitonCounts)) state.laitonCounts = []; while(state.laitonCounts.length < lyonShops.length) state.laitonCounts.push(0);
+            if(!Array.isArray(state.chromeCounts)) state.chromeCounts = []; while(state.chromeCounts.length < marseilleShops.length) state.chromeCounts.push(0);
+            if(!Array.isArray(state.titaneCounts)) state.titaneCounts = []; while(state.titaneCounts.length < orleansShops.length) state.titaneCounts.push(0);
+            if(!Array.isArray(state.bordeauxCounts)) state.bordeauxCounts = []; while(state.bordeauxCounts.length < bordeauxShops.length) state.bordeauxCounts.push(0);
+            if(!Array.isArray(state.toulouseCounts)) state.toulouseCounts = []; while(state.toulouseCounts.length < toulouseShops.length) state.toulouseCounts.push(0);
+            if(!Array.isArray(state.managerLevels)) state.managerLevels = []; while(state.managerLevels.length < managersData.length) state.managerLevels.push(0);
+            if(!Array.isArray(state.contracts)) state.contracts = [];
+            if(!Array.isArray(state.unlockedTechs)) state.unlockedTechs = [];
+            if(!Array.isArray(state.unlockedAchievements)) state.unlockedAchievements = [];
+            
+            if(state.totalTrombones === undefined) state.totalTrombones = state.trombones || 0;
+            if(state.totalMetal === undefined) state.totalMetal = state.metal || 100;
+            if(state.totalDollars === undefined) state.totalDollars = state.dollars || 0;
+            if(state.laiton === undefined) state.laiton = 0; if(state.totalLaiton === undefined) state.totalLaiton = 0;
+            if(state.chrome === undefined) state.chrome = 0; if(state.totalChrome === undefined) state.totalChrome = 0;
+            if(state.titane === undefined) state.titane = 0; if(state.totalTitane === undefined) state.totalTitane = 0;
+            if(state.bordeauxNaval === undefined) state.bordeauxNaval = 0; if(state.totalBordeauxNaval === undefined) state.totalBordeauxNaval = 0;
+            if(state.toulouseAero === undefined) state.toulouseAero = 0; if(state.totalToulouseAero === undefined) state.totalToulouseAero = 0;
+            if(state.manualClicks === undefined) state.manualClicks = 0;
+            if(state.frenzyCount === undefined) state.frenzyCount = 0;
+            if(state.volume === undefined) state.volume = 20;
+            if(!state.factories) state.factories = { paris: true, lyon: false, marseille: false, orleans: false, bordeaux: false, toulouse: false };
+            if(state.researchBulbs === undefined) state.researchBulbs = 0;
+            if(!state.currentFactory) state.currentFactory = 'paris';
+
+            document.getElementById('volumeSlider').value = state.volume; document.getElementById('volDisplay').innerText = state.volume + "%"; bgMusic.volume = state.volume / 100;
+            updateStats();
+            
+            if (state.lastOnline) {
+                let sA = Math.min(Math.floor((Date.now() - state.lastOnline) / 1000), 28800); 
+                if (sA >= 300) { 
+                    let mS = (tromboneProduction * (currentDemandPercent / 100)) * sA; let mM = metalProduction * sA; let mD = (mS * state.clipPrice) + (dollarPassiveIncome * sA);
+                    let mL = laitonProduction * sA; let mC = chromeProduction * sA; let mT = titaneProduction * sA; let mB = bordeauxProduction * sA; let mTo = toulouseProduction * sA;
+                    state.trombones += mS; state.totalTrombones += mS;
+                    state.metal += mM; state.totalMetal += mM;
+                    state.dollars += mD; state.totalDollars += mD;
+                    state.laiton += mL; state.totalLaiton += mL;
+                    state.chrome += mC; state.totalChrome += mC;
+                    state.titane += mT; state.totalTitane += mT;
+                    state.bordeauxNaval += mB; state.totalBordeauxNaval += mB;
+                    state.toulouseAero += mTo; state.totalToulouseAero += mTo;
+                    state.researchBulbs += Math.floor(sA / 10);
+                    document.getElementById('afk-text').innerHTML = `<p style="color:#cbd5e1; margin-bottom:15px; font-size:14px;">Tes pompes ont tourné pendant <b>${Math.floor(sA / 60)} min</b>.</p><div style="display:grid; grid-template-columns: auto 1fr; gap:8px; text-align:right; background:rgba(30, 41, 59, 0.95); padding:15px; border-radius:8px; width:100%; max-width:300px;"><div style="color:#34d399; font-weight:bold;">+${formatMoney(mD)} $</div><div style="color:#f59e0b; font-weight:bold;">+${formatMoney(mS)} 🛢️ Brut</div><div style="color:#64748b; font-weight:bold;">+${formatMoney(mM)} 🪨 Pression</div><div style="color:#b45309; font-weight:bold;">+${formatMoney(mL)} ⬛ Bitume</div><div style="color:#0284c7; font-weight:bold;">+${formatMoney(mC)} ⛽ Kérosène</div><div style="color:#059669; font-weight:bold;">+${formatMoney(mT)} 🧪 Polymères</div><div style="color:#94a3b8; font-weight:bold;">+${formatMoney(mB)} 🚢 Tankers</div><div style="color:#7c3aed; font-weight:bold;">+${formatMoney(mTo)} 🏗️ Deepsea</div></div>`;
+                    document.getElementById('afk-modal').style.display = 'flex';
+                }
+            }
+            if (state.contracts.length === 0 && !state.activeContract) generateContracts();
+            if (!state.activeQuest) generateNewQuest();
+        }
+        function closeAfkModal() { document.getElementById('afk-modal').style.display = 'none'; }
+        function openAchievements() { 
+            checkAchievements();
+            document.getElementById('achBonusDisplay').innerText = "+" + (state.unlockedAchievements.length * 5) + "%"; 
+            document.getElementById('ach-list').innerHTML = achievements.map(ach => { 
+                let unlocked = state.unlockedAchievements.includes(ach.id); 
+                return `<div class="ach-item ${unlocked ? 'unlocked' : ''}"><div class="ach-title">${unlocked ? '✅' : '🔒'} ${ach.name}</div><div class="ach-desc">${ach.desc}</div></div>`; 
+            }).join(''); 
+            document.getElementById('ach-modal').style.display = 'flex'; 
+        }
+        function closeAchievements() { document.getElementById('ach-modal').style.display = 'none'; }
+        function resetGame() { if(confirm("Supprimer la sauvegarde pétrolière ?")) { localStorage.clear(); location.reload(); } }
+
+        loadGame(); updateStats(); updateUI(); setInterval(gameLoop, 100); setInterval(saveGame, 5000);
+    </script>
+</body>
+</html>
